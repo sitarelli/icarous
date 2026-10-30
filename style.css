@@ -1,6 +1,7 @@
 /* ============================================
-   THESEUS - MOBILE-OPTIMIZED ARCADE THEME
-   Con Glassmorphism Moderno
+   ICAROUS — tema arcade neon (menu e pannelli) + gioco a tutto schermo
+   con HUD in pillole di vetro (stile Liquid Glass).
+   Font: Orbitron (titoli) + Share Tech Mono (HUD e testi)
    ============================================ */
 
 :root {
@@ -10,13 +11,15 @@
     --neon-green: #00ff41;
     --neon-red: #ff0040;
 
-    --bg-dark: #000;
-    --panel-bg: rgba(10, 10, 30, 0.95);
+    --panel-bg: rgba(10, 20, 40, 0.88);
 
     --glow-cyan: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
     --glow-magenta: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta);
     --glow-green: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
-    --glow-yellow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+    --glow-red: 0 0 10px var(--neon-red), 0 0 20px var(--neon-red);
+
+    --font-title: 'Orbitron', sans-serif;
+    --font-text: 'Share Tech Mono', monospace;
 }
 
 * {
@@ -31,19 +34,17 @@
 
 body {
     background: #000;
-    font-family: 'Share Tech Mono', monospace;
+    font-family: var(--font-text);
     color: var(--neon-cyan);
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     position: fixed;
 }
 
 /* Nascondi cursore durante il gioco */
-body.game-active {
-    cursor: none;
-}
-
+body.game-active,
 body.game-active * {
     cursor: none !important;
 }
@@ -65,11 +66,13 @@ body.game-active * {
 .rotate-content {
     text-align: center;
     color: var(--neon-cyan);
+    padding: 24px;
 }
 
 .rotate-content p {
     margin-top: 20px;
-    font-size: 18px;
+    font-size: 16px;
+    line-height: 1.5;
     text-shadow: var(--glow-cyan);
 }
 
@@ -84,334 +87,429 @@ body.game-active * {
 }
 
 /* ============================================
-   TAP TO START - Glassmorphism
+   PANNELLI (menu, pausa, game over, finale)
    ============================================ */
 
-.tap-overlay {
+.overlay {
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at center, #0a0a2e, #000);
-    z-index: 9999;
+    z-index: 5000;
     display: none;
     justify-content: center;
     align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 16px;
 }
 
-.tap-overlay.show {
+.overlay.show {
     display: flex;
+    animation: fadeIn 0.25s ease;
 }
 
-.tap-content {
-    text-align: center;
-    animation: tapPulse 2s infinite;
-    padding: 40px;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.glass-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 30px 36px;
     border-radius: 20px;
-    background: rgba(10, 20, 40, 0.4);
+    background: var(--panel-bg);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    box-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.15), inset 0 0 20px rgba(0, 255, 255, 0.05);
+    max-width: 100%;
+    max-height: 100%;
+    overflow-y: auto;
 }
 
-@keyframes tapPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+.small-panel { min-width: 300px; }
+
+.glass-panel.danger {
+    background: rgba(30, 0, 8, 0.9);
+    border-color: rgba(255, 0, 64, 0.6);
+    box-shadow: 0 0 30px rgba(255, 0, 64, 0.35);
 }
 
-.tap-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
+.panel-title {
+    font-family: var(--font-title);
+    font-size: 36px;
     font-weight: 900;
-    letter-spacing: 8px;
-    color: var(--neon-cyan);
-    text-shadow: var(--glow-cyan);
-    margin-bottom: 10px;
-}
-
-.tap-subtitle {
-    font-size: 16px;
-    color: var(--neon-magenta);
-    letter-spacing: 3px;
-    margin-bottom: 30px;
-}
-
-.tap-button {
-    margin-top: 30px;
-    padding: 18px 40px;
-    border: 3px solid var(--neon-green);
-    border-radius: 10px;
-    color: var(--neon-green);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
     letter-spacing: 4px;
-    box-shadow: var(--glow-green);
-    display: inline-block;
+    color: #fff;
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 6px;
+    text-align: center;
+}
+.danger .panel-title { text-shadow: var(--glow-red); }
+
+.btn {
+    width: 100%;
+    min-width: 260px;
+    padding: 12px 24px;
+    font-family: var(--font-title);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--neon-cyan);
+    background: rgba(0, 255, 255, 0.06);
+    border: 2px solid rgba(0, 255, 255, 0.45);
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover { background: rgba(0, 255, 255, 0.14); box-shadow: 0 0 14px rgba(0, 255, 255, 0.4); }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+    color: var(--neon-green);
+    border: 3px solid var(--neon-green);
     background: rgba(0, 255, 65, 0.1);
-    backdrop-filter: blur(5px);
+    box-shadow: var(--glow-green);
+    font-size: 17px;
+    letter-spacing: 3px;
 }
+.btn-primary:hover { background: rgba(0, 255, 65, 0.2); box-shadow: var(--glow-green); }
 
-.tap-button:hover {
-    background: rgba(0, 255, 65, 0.2);
-    transform: scale(1.05);
+.btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    color: rgba(0, 255, 255, 0.65);
 }
+.btn-ghost:hover { box-shadow: none; background: transparent; color: var(--neon-cyan); }
 
-.tap-hint {
-    margin-top: 20px;
+.link-btn {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+    background: none;
+    border: none;
+    color: rgba(0, 255, 255, 0.45);
+    font-family: var(--font-text);
     font-size: 12px;
-    color: rgba(0, 255, 255, 0.6);
-}
-
-.tap-debug {
-    margin-top: 20px;
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.3);
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 /* ============================================
-   POWER BAR - Glassmorphism
+   MENU INIZIALE
    ============================================ */
 
-.power-container {
+.menu-overlay {
+    background: radial-gradient(circle at center, #0a0a2e, #000);
+    z-index: 9999;
+}
+
+.menu-panel { width: min(470px, 100%); }
+
+.menu-title {
+    font-family: var(--font-title);
+    font-size: 52px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    line-height: 1.1;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+}
+
+.menu-subtitle {
+    font-size: 15px;
+    color: var(--neon-magenta);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+/* selettore della versione: Originale / Vitto Levels */
+.campaign-tabs {
+    display: flex;
+    width: 100%;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 255, 0.25);
+    background: rgba(0, 0, 0, 0.35);
+    margin-bottom: 4px;
+}
+
+.campaign-tab {
+    flex: 1;
+    padding: 9px 6px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(0, 255, 255, 0.55);
+    font-family: var(--font-title);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+}
+
+.campaign-tab.active {
+    background: rgba(255, 0, 255, 0.15);
+    color: #fff;
+    box-shadow: inset 0 0 0 1px var(--neon-magenta), 0 0 12px rgba(255, 0, 255, 0.4);
+    text-shadow: 0 0 8px var(--neon-magenta);
+}
+
+.menu-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: rgba(0, 255, 255, 0.6);
+    text-align: center;
+    line-height: 1.5;
+}
+
+.menu-debug {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+    min-height: 12px;
+}
+
+.level-grid {
+    display: none;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+.level-grid.show { display: grid; }
+
+.level-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 4px;
+    border-radius: 10px;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    color: var(--neon-cyan);
+    font-family: var(--font-text);
+    cursor: pointer;
+}
+.level-btn:hover:not(:disabled) { background: rgba(0, 255, 255, 0.15); box-shadow: 0 0 10px rgba(0, 255, 255, 0.4); }
+.level-btn:disabled { opacity: 0.3; cursor: default; }
+.lv-num { font-family: var(--font-title); font-weight: 900; font-size: 20px; }
+.lv-best { font-size: 11px; color: var(--neon-yellow); }
+
+.final-text {
+    max-width: 320px;
+    text-align: center;
+    font-size: 14px;
+    color: rgba(0, 255, 255, 0.8);
+}
+
+.final-score {
+    font-family: var(--font-title);
+    font-weight: 900;
+    font-size: 52px;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 10px var(--neon-yellow), 0 0 22px rgba(255, 255, 0, 0.6);
+    margin: 4px 0 10px;
+}
+
+/* ============================================
+   GIOCO A TUTTO SCHERMO + HUD IN VETRO
+   La tela copre tutta la finestra (anche sotto il notch); l'HUD sono pillole
+   di vetro smerigliato sopra il gioco, dentro le aree sicure dell'iPhone.
+   ============================================ */
+
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --glass-bg: rgba(14, 20, 32, 0.42);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --glass-blur: blur(16px) saturate(160%);
+    --cream: #F5F1E8;
+    --brand-orange: #F89520;
+}
+
+#game-container {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 10px;
-    background: rgba(10, 10, 30, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index: 50;
-    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    inset: 0;
+}
+
+.game-wrapper {
+    position: absolute;
+    inset: 0;
+}
+
+#game-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000;
+}
+
+.hud-bar {
+    position: absolute;
+    z-index: 1000;
+    top: calc(var(--safe-top) + 10px);
+    left: calc(var(--safe-left) + 12px);
+    right: calc(var(--safe-right) + 12px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.glass-pill {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 42px;
+    padding: 0 8px 0 16px;
+    border-radius: 999px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 24px rgba(0, 0, 0, 0.35);
+    font-family: 'Poppins', var(--font-text);
+    color: var(--cream);
+}
+
+.title-compact {
+    font-family: var(--font-title);
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--cream);
+    margin-right: 6px;
+}
+
+.title-compact .title-tag {
+    font-size: 10px;
+    letter-spacing: 2px;
+    margin-left: 8px;
+    color: var(--brand-orange);
+    vertical-align: middle;
+}
+
+/* Energia: una barra dentro la pillola centrale */
+.hud-power {
+    padding: 0 14px;
+    width: clamp(120px, 24vw, 280px);
+}
+
+.power-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
     overflow: hidden;
 }
 
 #power-bar {
     height: 100%;
     width: 100%;
-    background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
-    box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px rgba(255, 255, 255, 0.3);
-    transition: width 0.3s ease, background-color 0.5s ease;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #39d98a, #7CFFB2);
+    box-shadow: 0 0 10px rgba(124, 255, 178, 0.55);
+    transition: width 0.3s ease;
 }
-
-/* ============================================
-   GAME CONTAINER
-   ============================================ */
-
-#game-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    padding-top: 10px;
+#power-bar[data-level="mid"] {
+    background: linear-gradient(90deg, #f5b82e, #ffd36a);
+    box-shadow: 0 0 10px rgba(255, 211, 106, 0.55);
 }
-
-.compact-header {
-    position: relative;
-    z-index: 1000;
-    height: 50px;
-    background: rgba(10, 10, 30, 0.7);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
-    border-radius: 0 0 15px 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    margin: 0 10px;
-    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+#power-bar[data-level="low"] {
+    background: #ff4d5e;
+    box-shadow: 0 0 10px rgba(255, 77, 94, 0.7);
+    animation: lowPulse 0.8s ease-in-out infinite;
 }
-
-.title-compact {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    font-weight: 900;
-    letter-spacing: 6px;
-    color: var(--neon-cyan);
-    text-shadow: var(--glow-cyan);
-}
-
-.game-wrapper {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    overflow: hidden;
-    padding: 15px;
-}
-
-#game-canvas {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border: 3px solid var(--neon-cyan);
-    border-radius: 10px;
-    box-shadow: var(--glow-cyan);
-    image-rendering: pixelated;
-    background: #000;
-}
-
-/* ============================================
-   HUD STYLES - Glassmorphism
-   ============================================ */
-
-#hud-compact {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-}
+@keyframes lowPulse { 50% { opacity: 0.5; } }
 
 .hud-item {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-size: 14px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(0, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 255, 0.2);
+    padding: 4px 8px;
+    border-radius: 999px;
 }
 
 .hud-label {
-    color: var(--neon-cyan);
-    font-weight: bold;
-    font-family: 'Orbitron', sans-serif;
+    color: rgba(245, 241, 232, 0.6);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 1px;
 }
 
 .hud-value {
-    color: var(--neon-yellow);
-    min-width: 20px;
+    color: var(--cream);
+    min-width: 16px;
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-.hud-icon {
-    font-size: 16px;
+.hud-icon { font-size: 15px; }
+
+.timer-chip { display: none; background: rgba(120, 200, 255, 0.18); }
+.timer-chip.show { display: flex; }
+
+.pause-btn {
+    color: var(--cream);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    padding: 0;
 }
 
-/* INDICATORI CHIAVE E BANDIERA - SEMPLICI */
 .key-indicator, .flag-indicator {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
-    overflow: visible;
 }
 
 .key-indicator img, .flag-indicator img {
-    width: 24px;
-    height: 24px;
-    image-rendering: pixelated;
+    width: 22px;
+    height: 22px;
     object-fit: contain;
 }
 
-.key-indicator.has-key, .flag-indicator.has-flag {
-    /* Rimosso bagliore e animazione */
-    z-index: 2;
-    opacity: 1;
-}
-
-/* ZOOM CONTROLS - ELEGANTI E MINIMALI */
+/* ZOOM */
 .zoom-area {
-    display: flex;
-    align-items: center;
     gap: 0;
-    background: transparent;
-    border: none;
     padding: 0;
 }
 
 .zoom-btn {
     background: transparent;
     border: none;
-    color: var(--neon-cyan);
-    width: 48px;
-    height: 48px;
-    font-size: 32px;
+    color: var(--cream);
+    width: 30px;
+    height: 32px;
+    font-size: 22px;
     font-weight: 300;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    pointer-events: auto;
     touch-action: none;
-    text-shadow: 0 0 10px var(--neon-cyan);
+    opacity: 0.75;
     transition: transform 0.1s ease, opacity 0.1s ease;
 }
 
-.zoom-btn:active {
-    opacity: 0.5;
-    transform: scale(1.2);
-}
-
-.zoom-icon {
-    font-size: 18px;
-    pointer-events: none;
-    opacity: 0.5;
-    color: var(--neon-cyan);
-    margin: 0 -5px;
-}
+.zoom-btn:active { opacity: 0.4; transform: scale(1.2); }
 
 /* ============================================
-   GAME OVER OVERLAY
-   ============================================ */
-
-#game-over-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(50, 0, 0, 0.88);
-    z-index: 5000;
-    justify-content: center;
-    align-items: center;
-}
-
-#game-over-overlay.show {
-    display: flex;
-}
-
-.game-over-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    padding: 40px;
-    background: rgba(0, 0, 0, 0.8);
-    border: 3px solid #ff0000;
-    border-radius: 14px;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-}
-
-.game-over-text {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
-    font-weight: 900;
-    color: #ffffff;
-    text-shadow: 0 0 20px #ff0000;
-}
-
-.game-over-btn {
-    padding: 12px 30px;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    color: #ffffff;
-    background: #cc0000;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* ============================================
-   TOUCH CONTROLS
+   TOUCH CONTROLS (cerchi di vetro)
    ============================================ */
 
 #touch-controls {
@@ -425,47 +523,75 @@ body.game-active * {
 .controls-left,
 .controls-right {
     position: absolute;
-    bottom: 40px;
+    bottom: calc(var(--safe-bottom) + 28px);
     pointer-events: all;
 }
 
-.controls-left { left: 40px; }
-.controls-right { right: 40px; }
+.controls-left { left: calc(var(--safe-left) + 32px); }
+.controls-right { right: calc(var(--safe-right) + 32px); }
 
 #joystick-base {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    background: rgba(0, 255, 255, 0.1);
-    border: 2px solid rgba(0, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     position: relative;
 }
 
 #joystick-stick {
-    width: 60px;
-    height: 60px;
-    background: var(--neon-magenta);
+    width: 56px;
+    height: 56px;
+    background: rgba(245, 241, 232, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 50%;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    box-shadow: var(--glow-magenta);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 #btn-fly {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    border: 3px solid var(--neon-green);
-    background: rgba(0, 255, 65, 0.1);
-    color: var(--neon-green);
-    font-family: 'Orbitron', sans-serif;
-    font-size: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(248, 149, 32, 0.22);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: var(--cream);
+    font-family: var(--font-title);
+    font-size: 18px;
     font-weight: 900;
-    box-shadow: var(--glow-green);
+    letter-spacing: 2px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 @media (pointer: coarse) {
     #touch-controls { display: block; }
+}
+
+/* Schermi bassi (telefono in orizzontale) */
+@media (max-height: 500px) {
+    .menu-title { font-size: 38px; }
+    .glass-panel { padding: 18px 24px; gap: 8px; }
+    .btn { padding: 9px 20px; }
+    .panel-title { font-size: 28px; }
+    .glass-pill { height: 34px; padding: 0 6px 0 12px; }
+    .hud-power { padding: 0 12px; }
+    .title-compact { display: none; }      /* sul telefono basta "LV 02" */
+    .hud-item { padding: 2px 5px; font-size: 13px; }
+    .zoom-btn { width: 26px; height: 28px; }
+    .pause-btn { width: 28px; height: 28px; }
+    #joystick-base { width: 104px; height: 104px; }
+    #btn-fly { width: 86px; height: 86px; font-size: 16px; }
+}
+
+/* Telefono in verticale o finestre strette: niente titolo, pillole più compatte */
+@media (max-width: 640px) {
+    .title-compact { display: none; }
+    .hud-power { width: clamp(70px, 22vw, 140px); }
 }

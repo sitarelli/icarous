@@ -2,35 +2,64 @@
 /* MAIN - ENTRY POINT DEL GIOCO                                               */
 /* -------------------------------------------------------------------------- */
 
-import { config, gameState, player, setCurrentLevelNumber, setGameRunning, setCurrentMap, setItems, setEnemies, setTriggers, setDecorations, setLavas, setLavaParticles, setDustParticles, setFireworkParticles, setColorParticles, currentLevelNumber, gameRunning, isMobile } from './config.js';
-import { initInput, requestFullscreen, setFullscreenActivated } from './input.js';
-import { update, respawnPlayer, createColorParticles } from './player.js';
-import { initRenderer, draw, updateHUD, setBackgroundForLevel } from './renderer.js';
+import { config, gameState, player, keys, fx, timerPowerUp, CAMPAIGNS, isLab, labSource, settings, setCurrentLevelNumber, setGameRunning, setCurrentMap, setItems, setEnemies, setTriggers, setDecorations, setLavas, clearParticles, currentLevelNumber, gameRunning, isMobile } from './config.js';
+import { initInput, pollGamepad, requestFullscreen, setFullscreenActivated } from './input.js';
+import { update, respawnPlayer, respawnAtCheckpoint, updateCamera, addFloatText, playerDie } from './player.js';
+import { initRenderer, resizeRenderer, draw, updateHUD, resetHUDCache, setBackgroundForLevel, prepareLevel } from './renderer.js';
+import { getUnlocked, getBest, unlockLevel, recordResult, totalBestScore, saveSettings, resetProgress, getCampaign, setCampaign } from './save.js';
 
-// Stato power-up timer Pac-Man
-export const timerPowerUp = {
-    active: false,
-    timeLeft: 0
-};
+// Campagna in uso (Originale o Vitto Levels)
+const camp = () => CAMPAIGNS[getCampaign()] || CAMPAIGNS.originale;
 
-// Variabile per impedire il reset dello zoom ad ogni livello
-let userHasAdjustedZoom = false;
 
 // Canvas setup
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 
-let dpr = window.devicePixelRatio || 1;
-if (isMobile) {
-    dpr = Math.min(dpr, 1.5); 
+let dpr = 1;
+
+// La tela prende tutta la finestra. La risoluzione interna ha un tetto di pixel,
+// così su un monitor 4K o su un telefono il gioco non rallenta.
+const MAX_CANVAS_PIXELS = isMobile ? 1.8e6 : 3.2e6;
+function resizeCanvas() {
+    const w = Math.max(1, window.innerWidth), h = Math.max(1, window.innerHeight);
+    const native = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
+    dpr = Math.max(0.75, Math.min(native, Math.sqrt(MAX_CANVAS_PIXELS / (w * h))));
+    config.viewportWidth = w;
+    config.viewportHeight = h;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    resizeRenderer(dpr);
+    measureHud();
+    applyZoom();
+    if (gameRunning) updateCamera(true);
 }
 
-canvas.width = config.viewportWidth * dpr;
-canvas.height = config.viewportHeight * dpr;
-canvas.style.width = `${config.viewportWidth}px`;
-canvas.style.height = `${config.viewportHeight}px`;
-ctx.scale(dpr, dpr);
-ctx.imageSmoothingEnabled = true;
+// Il canvas non conosce il CSS: gli passiamo notch e posizione delle pillole dell'HUD
+function measureHud() {
+    config.safeLeft = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-left')) || 0;
+    const pill = document.querySelector('.hud-left');
+    const r = pill ? pill.getBoundingClientRect() : null;
+    config.hudBottom = r && r.height ? r.bottom : 60;
+}
+
+// Si vedono sempre ~23 tile in verticale (su telefono ×1,5 per sprite più grandi), per il "+ / −" dell'utente
+function applyZoom() {
+    if (!config.tileSize) return;
+    config.zoom = config.viewportHeight / (23 * config.tileSize) * (isMobile ? 1.5 : 1) * config.userZoom;
+}
+
+let resizeQueued = false;
+function queueResize() {
+    if (resizeQueued) return;
+    resizeQueued = true;
+    requestAnimationFrame(() => { resizeQueued = false; resizeCanvas(); });
+}
+window.addEventListener('resize', queueResize);
+window.addEventListener('orientationchange', () => setTimeout(queueResize, 300));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', queueResize);
 
 // --- SPRITES ---
 const sprites = {};
@@ -121,7 +150,7 @@ function loadAllAudio(onProgress) {
 
 function updateProgress() {
     const debugInfo = document.getElementById('debug-info');
-    if (debugInfo) debugInfo.textContent = `Immagini: ${loadedImages}/${imagesToLoad.length}`;
+    if (debugInfo && !audioReady) debugInfo.textContent = `Immagini: ${loadedImages}/${imagesToLoad.length}`;
 }
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -168,74 +197,121 @@ export function stopAllSounds() {
     Object.values(sfx).forEach(audio => { if (audio) { try { audio.pause(); audio.currentTime = 0; } catch(e) {} } });
 }
 
-// --- LOGICA ZOOM DEFINITIVA PER MOBILE ---
+// --- ZOOM ---
 function initZoomControls() {
     const btnIn = document.getElementById('btn-zoom-in');
     const btnOut = document.getElementById('btn-zoom-out');
     if (!btnIn || !btnOut) return;
 
     const updateZoom = (delta) => {
-        const newZoom = Math.round((config.zoom + delta) * 10) / 10;
-        if (newZoom >= 0.3 && newZoom <= 5.0) {
-            config.zoom = newZoom;
-            userHasAdjustedZoom = true; // L'utente ha preso il controllo, non resettare più
-            console.log("Zoom impostato a:", config.zoom);
+        const next = Math.round((config.userZoom + delta) * 10) / 10;
+        if (next >= 0.5 && next <= 2.5) {
+            config.userZoom = next;   // resta valido anche cambiando livello o ridimensionando
+            applyZoom();
         }
     };
 
     // Pointerdown gestisce Touch e Mouse senza lag
     const onPointerDown = (e, delta) => {
         e.preventDefault();
-        e.stopPropagation(); 
+        e.stopPropagation();
         updateZoom(delta);
     };
-
-    // Usiamo onpointerdown per massima priorità su Android
     btnIn.onpointerdown = (e) => onPointerDown(e, 0.2);
     btnOut.onpointerdown = (e) => onPointerDown(e, -0.2);
 }
 
-// --- INIZIALIZZAZIONE GIOCO ---
-initRenderer(canvas, ctx, sprites);
-initInput(getOrCreateAudioContext);
-initZoomControls();
+/* ===================== OVERLAY (menu, pausa, game over, finale) ===================== */
+
+const $ = id => document.getElementById(id);
+
+function showOverlay(id, show) {
+    const el = $(id);
+    if (el) el.classList.toggle('show', show);
+    const anyOpen = document.querySelector('.overlay.show');
+    document.body.classList.toggle('game-active', !anyOpen);
+}
+
+function releaseKeys() {
+    keys.left = keys.right = keys.up = false;
+}
+
+/* ===================== CARICAMENTO LIVELLI ===================== */
 
 window.loadLevelData = function(data) { gameState.statusMessage = ""; initGame(data); };
 
-export function loadLevelScript(n) {
-    setCurrentLevelNumber(n);
+function loadLevelSrc(src, onError) {
     const old = document.getElementById('level-script'); if (old) old.remove();
-    const s = document.createElement('script'); s.id = 'level-script'; s.src = `levels/level${n}.js`;
-    s.onerror = () => { if (n === 1) gameState.statusMessage = "Manca level1.js"; else drawVictoryScreen(); };
+    const s = document.createElement('script');
+    s.id = 'level-script';
+    s.src = `${src}?v=${Date.now()}`;   // niente cache: utile mentre si disegnano i livelli
+    s.onerror = onError;
     document.body.appendChild(s);
+}
+
+export function loadLevel(n) {
+    setCurrentLevelNumber(n);
+    gameState.levelNumber = n;
+    const num = String(n).padStart(2, '0');
+    gameState.levelTitle = getCampaign() === 'vitto' ? `VITTO LEVELS ${num}` : `LIVELLO ${num}`;
+    const src = `${camp().dir}/level${n}.js`;
+    loadLevelSrc(src, () => { alert(`Manca il file ${src}`); showMenu(); });
+}
+
+// Laboratorio: livello da levels/test/ oppure file caricato dal computer (test.html)
+const LAB_PATH = /^levels\/test\/[\w\-. ]+\.js$/;
+function loadLabLevel() {
+    setCurrentLevelNumber(0);
+    gameState.levelNumber = 0;
+    if (labSource === 'local') {
+        let text = null;
+        try { text = sessionStorage.getItem('icarous_lab_level'); } catch (e) {}
+        if (!text) { alert('Nessun livello caricato: torna su test.html e scegli un file.'); return; }
+        try { new Function(text)(); }
+        catch (e) { alert('Errore nel file del livello:\n' + e.message); }
+    } else if (LAB_PATH.test(labSource)) {
+        loadLevelSrc(labSource, () => alert('File non trovato: ' + labSource));
+    } else {
+        alert('Percorso non valido (deve stare in levels/test/): ' + labSource);
+    }
+}
+
+function reloadCurrentLevel() {
+    if (isLab) loadLabLevel(); else loadLevel(currentLevelNumber);
 }
 
 function initGame(levelData) {
     if (!levelData) return;
+    stopAllSounds();
     safePlayAudio(sfx.beginLevel);
     gameState.hasKey = false; gameState.hasFlag = false; gameState.doorOpen = false; gameState.won = false; gameState.victoryTime = 0; gameState.power = gameState.maxPower; gameState.gameOver = false;
+    gameState.checkpoint = null;
+    gameState.levelTime = 0;
+    gameState.levelStats = { stars: 0, bulbs: 0, flags: 0, deaths: 0 };
+    gameState.lastResult = null;
+    gameState.levelName = levelData.name || '';
+    gameState.levelIntro = levelData.intro || '';   // riga di trama facoltativa
+    gameState.paused = false;
     timerPowerUp.active = false; timerPowerUp.timeLeft = 0;
-    if (sfx.timer && !sfx.timer.paused) { try { sfx.timer.pause(); sfx.timer.currentTime = 0; } catch(e) {} }
-    setBackgroundForLevel(currentLevelNumber);
-    setCurrentMap(JSON.parse(JSON.stringify(levelData.map)));
+    fx.hitStop = 0; fx.flash = 0; fx.lightBoost = 0; fx.fadeIn = 1; fx.fadeOut = 0; fx.titleTime = 0;
+    fadeCallback = null;
+    winTimer = 0;
+    // Il livello può scegliere lo sfondo con il campo "background", altrimenti sfondoN = livello N
+    setBackgroundForLevel(levelData.background || (isLab ? 3 : currentLevelNumber));
     config.tileSize = levelData.tileSize || 20;
-    
-    // Ricalcola zoom solo se l'utente non lo ha ancora toccato
-    if (!userHasAdjustedZoom) {
-        const baseZoom = config.viewportHeight / (23 * config.tileSize);
-        const mobileMultiplier = isMobile ? 1.5 : 1.0;
-        config.zoom = baseZoom * mobileMultiplier;
-    }
-    
+
+    applyZoom();
+
     const tempItems = [], tempEnemies = [], tempTriggers = [], tempDecorations = [], tempLavas = [];
-    setLavaParticles([]); setDustParticles([]); setFireworkParticles([]); setColorParticles([]);
-    const currentMap = levelData.map;
+    clearParticles();
+    const currentMap = JSON.parse(JSON.stringify(levelData.map));
     for (let y = 0; y < currentMap.length; y++) {
         for (let x = 0; x < currentMap[y].length; x++) {
             const cell = currentMap[y][x];
             const type = (typeof cell === 'object') ? cell.type : cell;
             const group = (typeof cell === 'object') ? cell.group : null;
             if (type === 0 || type === 1) continue;
+            // Fonde le celle uguali adiacenti in un unico rettangolo (= una sola entità)
             let w = 1, h = 1;
             while (x + w < currentMap[y].length) {
                 const nextCell = currentMap[y][x + w];
@@ -255,7 +331,7 @@ function initGame(levelData) {
                 if (canDown) h++;
             }
             const pxW = w * config.tileSize, pxH = h * config.tileSize, pxX = x * config.tileSize, pxY = y * config.tileSize;
-            if (type === 9) { player.w = pxW; player.h = pxH; player.startX = pxX; player.startY = pxY; respawnPlayer(); } 
+            if (type === 9) { player.w = pxW; player.h = pxH; player.startX = pxX; player.startY = pxY; respawnPlayer(); }
             else if (type === 2) tempLavas.push({ x: pxX, y: pxY, w: pxW, h: pxH });
             else if (type === 10) tempItems.push({ x: pxX, y: pxY, w: pxW, h: pxH, type: 'key', taken: false });
             else if (type === 12) tempItems.push({ x: pxX, y: pxY, w: pxW, h: pxH, type: 'star', taken: false });
@@ -274,8 +350,90 @@ function initGame(levelData) {
         }
     }
     setItems(tempItems); setEnemies(tempEnemies); setTriggers(tempTriggers); setDecorations(tempDecorations); setLavas(tempLavas); setCurrentMap(currentMap);
+    prepareLevel();
+    updateCamera(true);
+    resetHUDCache();
+    showOverlay('game-over-overlay', false);
+    showOverlay('pause-overlay', false);
+    showOverlay('menu-overlay', false);
     if (!gameRunning) { setGameRunning(true); requestAnimationFrame(loop); }
 }
+
+/* ===================== VITTORIA, MORTE, FINALE ===================== */
+
+let fadeCallback = null;
+let winTimer = 0;
+
+function fadeThen(cb) { fadeCallback = cb; }
+
+function computeScore() {
+    const s = gameState.levelStats;
+    const time = gameState.levelTime;
+    const timeBonus = Math.max(0, 3000 - Math.floor(time) * 5);   // a 10 minuti il bonus finisce
+    const power = Math.max(0, gameState.power / gameState.maxPower);
+    const score = Math.max(0, timeBonus + s.stars * 100 + s.bulbs * 50 + s.flags * 250 + Math.round(power * 1000) - s.deaths * 500);
+    return { score, time, timeBonus, power, ...s };
+}
+
+const hooks = {
+    onWin() {
+        const r = computeScore();
+        const prevBest = getBest(currentLevelNumber);
+        r.isRecord = !isLab && recordResult(currentLevelNumber, r.score, r.time) && !!prevBest;
+        r.best = prevBest ? Math.max(prevBest.score, r.score) : null;
+        if (!isLab && currentLevelNumber < camp().count) unlockLevel(currentLevelNumber + 1);
+        gameState.lastResult = r;
+        winTimer = 6.5;   // secondi di festa + cartellino prima del cambio livello
+    },
+    onGameOver() {
+        releaseKeys();
+        const cp = $('btn-checkpoint');
+        if (cp) cp.style.display = gameState.checkpoint ? '' : 'none';
+        showOverlay('game-over-overlay', true);
+    }
+};
+
+function afterWin() {
+    if (sfx.levelup) { try { sfx.levelup.pause(); sfx.levelup.currentTime = 0; } catch(e) {} }
+    if (isLab) { reloadCurrentLevel(); return; }
+    if (currentLevelNumber >= camp().count) showFinalScreen();
+    else loadLevel(currentLevelNumber + 1);
+}
+
+function showFinalScreen() {
+    gameState.paused = true;
+    stopAllSounds();
+    const total = $('final-score');
+    if (total) total.textContent = totalBestScore().toLocaleString('it-IT');
+    const title = $('final-title');
+    if (title) title.textContent = getCampaign() === 'vitto' ? 'VITTO LEVELS FINITI! (PER ORA)' : 'HAI FINITO ICAROUS!';
+    showOverlay('final-overlay', true);
+}
+
+/* ===================== PAUSA ===================== */
+
+function togglePause() {
+    if (!gameRunning || gameState.won || gameState.gameOver || player.isDying) return;
+    if ($('menu-overlay')?.classList.contains('show')) return;
+    gameState.paused = !gameState.paused;
+    releaseKeys();
+    if (gameState.paused) {
+        if (sfx.walk) sfx.walk.pause();
+        if (sfx.fly) sfx.fly.pause();
+        if (sfx.timer) sfx.timer.pause();
+        refreshLightButton();
+    } else if (timerPowerUp.active && sfx.timer) {
+        safePlayAudio(sfx.timer);
+    }
+    showOverlay('pause-overlay', gameState.paused);
+}
+
+function refreshLightButton() {
+    const b = $('btn-light');
+    if (b) b.textContent = `Luce dinamica: ${settings.lighting ? 'ON' : 'OFF'}`;
+}
+
+/* ===================== GAME LOOP ===================== */
 
 let lastTime = 0;
 let accumulator = 0;
@@ -285,101 +443,183 @@ function loop(timestamp) {
     let deltaTime = (timestamp - lastTime) / 1000;
     lastTime = timestamp;
     if (deltaTime > 0.25) deltaTime = 0.25;
-    accumulator += deltaTime;
-    while (accumulator >= config.fixedTimeStep) {
-        update(config.fixedTimeStep, showRetryButton, currentLevelNumber, loadLevelScript); 
-        accumulator -= config.fixedTimeStep;
+
+    pollGamepad();
+
+    if (!gameState.paused) {
+        accumulator += deltaTime;
+        while (accumulator >= config.fixedTimeStep) {
+            update(config.fixedTimeStep, hooks);
+            accumulator -= config.fixedTimeStep;
+        }
+        if (winTimer > 0) {
+            winTimer -= deltaTime;
+            if (winTimer <= 0) fadeThen(afterWin);
+        }
+    } else {
+        accumulator = 0;
     }
-    if (gameState.won && gameState.vX && gameState.vY && Math.random() < 0.3) {
-        createColorParticles(gameState.vX + gameState.vW / 2, gameState.vY + gameState.vH / 2, 8 + Math.floor(Math.random() * 4), 'collect');
+
+    // Dissolvenza in nero prima di cambiare livello
+    if (fadeCallback) {
+        fx.fadeOut = Math.min(1, fx.fadeOut + deltaTime * 2);
+        if (fx.fadeOut >= 1) { const cb = fadeCallback; fadeCallback = null; cb(); }
     }
+
     draw(gameRunning);
     updateHUD(currentLevelNumber, gameRunning);
     updateKeyHUD();
     requestAnimationFrame(loop);
 }
 
-function showRetryButton() {
-    document.body.classList.remove('game-active'); 
-    const oldBtn = document.getElementById('retry-btn'); if (oldBtn) oldBtn.remove();
-    const btn = document.createElement('button');
-    btn.id = 'retry-btn'; btn.textContent = 'RIPROVA';
-    Object.assign(btn.style, { position: 'absolute', left: '50%', top: '65%', transform: 'translate(-50%, -50%)', padding: '15px 30px', fontSize: '24px', fontFamily: 'Orbitron, sans-serif', cursor: 'pointer', backgroundColor: '#ff0000', color: 'white', border: 'none', borderRadius: '5px', boxShadow: '0 0 15px rgba(255,0,0,0.5)', zIndex: '100' });
-    btn.onclick = restartGame;
-    document.body.appendChild(btn);
-}
+/* ===================== MENU INIZIALE ===================== */
 
-function restartGame() {
-    document.body.classList.add('game-active'); 
-    const btn = document.getElementById('retry-btn'); if (btn) btn.remove();
-    gameState.gameOver = false; gameState.power = gameState.maxPower; gameState.hasKey = false; gameState.hasFlag = false;
-    loadLevelScript(currentLevelNumber); 
-}
-
-const tapOverlay = document.getElementById('tap-to-start');
-let gameStarted = false;
-async function startGame() {
-    if (gameStarted) return;
-    gameStarted = true;
-    
-    // 1. Audio Context
+let audioReady = false;
+async function ensureAudio() {
     const actx = getOrCreateAudioContext();
     if (actx.state === 'suspended') await actx.resume().catch(() => {});
-    
-    // 2. Fullscreen (RIPRISTINATO)
-    requestFullscreen();
-    setFullscreenActivated(true);
-
-    const debugInfo = document.getElementById('debug-info');
+    if (!isLab && window.self === window.top) {
+        requestFullscreen();
+        setFullscreenActivated(true);
+    }
+    if (audioReady) return;
+    const debugInfo = $('debug-info');
     if (debugInfo) debugInfo.textContent = 'Caricamento audio...';
     await loadAllAudio((done, total) => { if (debugInfo) debugInfo.textContent = `Audio: ${done}/${total}`; });
-    
-    safePlayAudio(sfx.beginLevel);
-    document.body.classList.add('game-active');
-    
-    if (tapOverlay) { 
-        tapOverlay.classList.remove('show'); 
-        setTimeout(() => { tapOverlay.style.display = 'none'; }, 300); 
+    audioReady = true;
+    if (debugInfo) debugInfo.textContent = '';
+}
+
+async function startFromMenu(levelNumber) {
+    await ensureAudio();
+    showOverlay('menu-overlay', false);
+    showOverlay('final-overlay', false);
+    if (isLab) loadLabLevel(); else loadLevel(levelNumber);
+}
+
+function buildMenu() {
+    const c = camp();
+    const unlocked = Math.min(getUnlocked(), c.count);
+    document.querySelectorAll('.campaign-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.campaign === getCampaign());
+        tab.onclick = () => { setCampaign(tab.dataset.campaign); buildMenu(); };
+    });
+    $('campaign-desc').textContent = c.desc;
+    $('campaign-tag').textContent = c.tag;
+    const primary = $('btn-play');
+    const newGame = $('btn-new');
+    const pick = $('btn-levels');
+    const grid = $('level-grid');
+
+    if (isLab) {
+        primary.textContent = 'GIOCA IL LIVELLO DI TEST';
+        primary.onclick = () => startFromMenu(0);
+        newGame.style.display = 'none';
+        pick.style.display = 'none';
+        $('menu-subtitle').textContent = 'Laboratorio livelli · G = invincibile';
+        $('campaign-tabs').style.display = 'none';
+        $('campaign-desc').style.display = 'none';
+        $('campaign-tag').textContent = 'LAB';
+        return;
     }
-    
-    const gameContainer = document.getElementById('game-container');
-    if (gameContainer) gameContainer.style.display = 'flex';
-    
-    if (!gameRunning) loadLevelScript(1);
+
+    primary.textContent = unlocked > 1 ? `CONTINUA · LIVELLO ${String(unlocked).padStart(2, '0')}` : 'GIOCA';
+    primary.onclick = () => startFromMenu(unlocked);
+    newGame.style.display = unlocked > 1 ? '' : 'none';
+    newGame.onclick = () => startFromMenu(1);
+    pick.onclick = () => grid.classList.toggle('show');
+
+    grid.innerHTML = '';
+    for (let n = 1; n <= c.count; n++) {
+        const b = document.createElement('button');
+        b.className = 'level-btn';
+        b.disabled = n > unlocked;
+        const best = getBest(n);
+        b.innerHTML = `<span class="lv-num">${String(n).padStart(2, '0')}</span><span class="lv-best">${best ? best.score.toLocaleString('it-IT') : (n > unlocked ? '🔒' : '—')}</span>`;
+        b.onclick = () => startFromMenu(n);
+        grid.appendChild(b);
+    }
+    const reset = document.createElement('button');
+    reset.className = 'link-btn';
+    reset.textContent = 'Azzera progressi';
+    reset.onclick = () => { if (confirm(`Cancellare livelli sbloccati e record di ${c.name}?`)) { resetProgress(); buildMenu(); grid.classList.add('show'); } };
+    grid.appendChild(reset);
 }
 
-if (tapOverlay) {
-    tapOverlay.classList.add('show');
-    tapOverlay.addEventListener('touchend', startGame, { passive: true });
-    tapOverlay.addEventListener('click', startGame);
+function showMenu() {
+    gameState.paused = true;
+    releaseKeys();
+    stopAllSounds();
+    fadeCallback = null;
+    winTimer = 0;
+    buildMenu();
+    showOverlay('pause-overlay', false);
+    showOverlay('game-over-overlay', false);
+    showOverlay('final-overlay', false);
+    showOverlay('menu-overlay', true);
 }
 
+/* ===================== HUD CHIAVE / BANDIERA ===================== */
+
+let hudKey = null, hudFlag = null;
 export function updateKeyHUD() {
-    const keyIndicator = document.querySelector('.key-indicator');
-    if (keyIndicator) {
-        const currentlyHasImg = keyIndicator.querySelector('img');
-        const isLit = keyIndicator.classList.contains('has-key');
-
-        if (gameState.hasKey && (!currentlyHasImg || !isLit)) {
-            keyIndicator.classList.add('has-key');
-            keyIndicator.innerHTML = '<img src="png/key.png" alt="Key">';
-        } else if (!gameState.hasKey && (!currentlyHasImg || isLit)) {
-            keyIndicator.classList.remove('has-key');
-            keyIndicator.innerHTML = '<img src="png/key.png" alt="Key" style="opacity:0.2;">';
+    if (hudKey !== gameState.hasKey) {
+        hudKey = gameState.hasKey;
+        const el = document.querySelector('.key-indicator');
+        if (el) {
+            el.classList.toggle('has-key', hudKey);
+            el.innerHTML = `<img src="png/key.png" alt="Chiave" style="opacity:${hudKey ? 1 : 0.2}">`;
         }
     }
-
-    const flagIndicator = document.querySelector('.flag-indicator');
-    if (flagIndicator) {
-        const currentlyHasImg = flagIndicator.querySelector('img');
-        const isLit = flagIndicator.classList.contains('has-flag');
-
-        if (gameState.hasFlag && (!currentlyHasImg || !isLit)) {
-            flagIndicator.classList.add('has-flag');
-            flagIndicator.innerHTML = '<img src="png/flag.png" alt="Flag">';
-        } else if (!gameState.hasFlag && (!currentlyHasImg || isLit)) {
-            flagIndicator.classList.remove('has-flag');
-            flagIndicator.innerHTML = '<img src="png/flag.png" alt="Flag" style="opacity:0.2;">';
+    if (hudFlag !== gameState.hasFlag) {
+        hudFlag = gameState.hasFlag;
+        const el = document.querySelector('.flag-indicator');
+        if (el) {
+            el.classList.toggle('has-flag', hudFlag);
+            el.title = hudFlag ? 'Checkpoint attivo' : 'Checkpoint non ancora preso';
+            el.innerHTML = `<img src="png/flag.png" alt="Checkpoint" style="opacity:${hudFlag ? 1 : 0.2}">`;
         }
     }
 }
+
+/* ===================== AVVIO ===================== */
+
+initRenderer(canvas, ctx, sprites);
+resizeCanvas();
+if (document.fonts) document.fonts.ready.then(measureHud);   // le pillole cambiano misura quando arrivano i font
+initInput(getOrCreateAudioContext, {
+    onPause: togglePause,
+    onGodToggle: () => {
+        if (!isLab || !gameRunning) return;
+        gameState.god = !gameState.god;
+        addFloatText(player.x + player.w / 2, player.y, gameState.god ? 'INVINCIBILE' : 'NORMALE', '#ffffff');
+    },
+    onKill: () => {
+        if (!isLab || !gameRunning || gameState.won) return;
+        gameState.god = false;
+        gameState.power = 0;
+        playerDie();
+    }
+});
+initZoomControls();
+
+$('btn-pause')?.addEventListener('click', togglePause);
+$('btn-resume')?.addEventListener('click', togglePause);
+$('btn-restart')?.addEventListener('click', () => { showOverlay('pause-overlay', false); reloadCurrentLevel(); });
+$('btn-light')?.addEventListener('click', () => { settings.lighting = !settings.lighting; saveSettings(); refreshLightButton(); });
+$('btn-pause-menu')?.addEventListener('click', showMenu);
+$('btn-checkpoint')?.addEventListener('click', () => {
+    showOverlay('game-over-overlay', false);
+    if (!respawnAtCheckpoint()) reloadCurrentLevel();
+});
+$('btn-retry')?.addEventListener('click', () => { showOverlay('game-over-overlay', false); reloadCurrentLevel(); });
+$('btn-gameover-menu')?.addEventListener('click', showMenu);
+$('btn-final-menu')?.addEventListener('click', showMenu);
+
+// Se la pagina va in background (telefono, cambio scheda) mette in pausa
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden && gameRunning && !gameState.paused) togglePause();
+});
+
+buildMenu();
+showOverlay('menu-overlay', true);

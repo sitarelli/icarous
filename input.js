@@ -5,27 +5,84 @@
 import { keys } from './config.js';
 
 let audioCtx = null;
+let onPause = null;      // callback fornita da main.js (P / Esc / Start del joypad)
+let onGodToggle = null;  // solo laboratorio (tasto G)
+let onKill = null;       // solo laboratorio (tasto K): prova l'animazione di morte
 
-export function initInput(audioContext) {
+export function initInput(audioContext, callbacks = {}) {
     audioCtx = audioContext;
+    onPause = callbacks.onPause || null;
+    onGodToggle = callbacks.onGodToggle || null;
+    onKill = callbacks.onKill || null;
     initKeyboard();
     initTouchControls();
     initOrientation();
 }
 
+// Frecce, WASD e Spazio. Volo: Spazio, W o Freccia su.
+const KEY_MAP = {
+    ArrowRight: 'right', KeyD: 'right',
+    ArrowLeft: 'left',   KeyA: 'left',
+    Space: 'up', ArrowUp: 'up', KeyW: 'up'
+};
+const heldKeys = new Set();
+
+function refreshKeys() {
+    keys.right = keys.left = keys.up = false;
+    heldKeys.forEach(code => { keys[KEY_MAP[code]] = true; });
+}
+
 function initKeyboard() {
-    window.addEventListener('keydown', e => { 
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); 
-        if (e.code === 'ArrowRight') keys.right = true; 
-        if (e.code === 'ArrowLeft') keys.left = true; 
-        if (e.code === 'Space') keys.up = true; 
+    window.addEventListener('keydown', e => {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (KEY_MAP[e.code]) {
+            e.preventDefault();
+            heldKeys.add(e.code);
+            refreshKeys();
+        }
+        if ((e.code === 'KeyP' || e.code === 'Escape') && !e.repeat && onPause) onPause();
+        if (e.code === 'KeyG' && !e.repeat && onGodToggle) onGodToggle();
+        if (e.code === 'KeyK' && !e.repeat && onKill) onKill();
     });
-    
-    window.addEventListener('keyup', e => { 
-        if (e.code === 'ArrowRight') keys.right = false; 
-        if (e.code === 'ArrowLeft') keys.left = false; 
-        if (e.code === 'Space') keys.up = false; 
+
+    window.addEventListener('keyup', e => {
+        if (KEY_MAP[e.code]) {
+            heldKeys.delete(e.code);
+            refreshKeys();
+        }
     });
+
+    // Se la finestra perde il focus, nessun tasto deve restare "incastrato"
+    window.addEventListener('blur', () => { heldKeys.clear(); refreshKeys(); });
+}
+
+// ===== JOYPAD (Gamepad API, nessuna libreria) =====
+let padWasActive = false;
+let padStartWasDown = false;
+
+export function pollGamepad() {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const pad = Array.from(pads || []).find(p => p && p.connected);
+    if (!pad) return;
+
+    const axis = pad.axes[0] || 0;
+    const btn = i => !!(pad.buttons[i] && pad.buttons[i].pressed);
+    const right = axis > 0.4 || btn(15);
+    const left = axis < -0.4 || btn(14);
+    const up = btn(0) || btn(1) || btn(12) || btn(7);   // A / B / croce su / grilletto destro
+    const active = right || left || up;
+
+    // Il joypad comanda solo quando è usato, così non annulla tastiera o touch
+    if (active || padWasActive) {
+        keys.right = right;
+        keys.left = left && !right;
+        keys.up = up;
+    }
+    padWasActive = active;
+
+    const startDown = btn(9);
+    if (startDown && !padStartWasDown && onPause) onPause();
+    padStartWasDown = startDown;
 }
 
 function initTouchControls() {
@@ -116,7 +173,8 @@ function isCapacitor() {
 }
 
 function checkOrientation() {
-    if (isCapacitor()) {
+    // Nell'APK e dentro il laboratorio (iframe di test.html) il messaggio non serve
+    if (isCapacitor() || window.self !== window.top) {
         const rotateMsg = document.getElementById('rotate-message');
         if (rotateMsg) {
             rotateMsg.style.display = 'none';

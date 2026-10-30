@@ -1,0 +1,471 @@
+/* ============================================
+   THESEUS - MOBILE-OPTIMIZED ARCADE THEME
+   Con Glassmorphism Moderno
+   ============================================ */
+
+:root {
+    --neon-cyan: #00ffff;
+    --neon-magenta: #ff00ff;
+    --neon-yellow: #ffff00;
+    --neon-green: #00ff41;
+    --neon-red: #ff0040;
+
+    --bg-dark: #000;
+    --panel-bg: rgba(10, 10, 30, 0.95);
+
+    --glow-cyan: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+    --glow-magenta: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta);
+    --glow-green: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+    --glow-yellow: 0 0 10px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+body {
+    background: #000;
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--neon-cyan);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+}
+
+/* Nascondi cursore durante il gioco */
+body.game-active {
+    cursor: none;
+}
+
+body.game-active * {
+    cursor: none !important;
+}
+
+/* ============================================
+   ROTATE OVERLAY
+   ============================================ */
+
+.rotate-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+}
+
+.rotate-content {
+    text-align: center;
+    color: var(--neon-cyan);
+}
+
+.rotate-content p {
+    margin-top: 20px;
+    font-size: 18px;
+    text-shadow: var(--glow-cyan);
+}
+
+.rotate-icon {
+    font-size: 72px;
+    animation: rotatePhone 2s infinite;
+}
+
+@keyframes rotatePhone {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+}
+
+/* ============================================
+   TAP TO START - Glassmorphism
+   ============================================ */
+
+.tap-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #0a0a2e, #000);
+    z-index: 9999;
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+.tap-overlay.show {
+    display: flex;
+}
+
+.tap-content {
+    text-align: center;
+    animation: tapPulse 2s infinite;
+    padding: 40px;
+    border-radius: 20px;
+    background: rgba(10, 20, 40, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.1);
+}
+
+@keyframes tapPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.tap-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 10px;
+}
+
+.tap-subtitle {
+    font-size: 16px;
+    color: var(--neon-magenta);
+    letter-spacing: 3px;
+    margin-bottom: 30px;
+}
+
+.tap-button {
+    margin-top: 30px;
+    padding: 18px 40px;
+    border: 3px solid var(--neon-green);
+    border-radius: 10px;
+    color: var(--neon-green);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    box-shadow: var(--glow-green);
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(0, 255, 65, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.tap-button:hover {
+    background: rgba(0, 255, 65, 0.2);
+    transform: scale(1.05);
+}
+
+.tap-hint {
+    margin-top: 20px;
+    font-size: 12px;
+    color: rgba(0, 255, 255, 0.6);
+}
+
+.tap-debug {
+    margin-top: 20px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   POWER BAR - Glassmorphism
+   ============================================ */
+
+.power-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10px;
+    background: rgba(10, 10, 30, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 50;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+#power-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+    box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px rgba(255, 255, 255, 0.3);
+    transition: width 0.3s ease, background-color 0.5s ease;
+}
+
+/* ============================================
+   GAME CONTAINER
+   ============================================ */
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding-top: 10px;
+}
+
+.compact-header {
+    position: relative;
+    z-index: 1000;
+    height: 50px;
+    background: rgba(10, 10, 30, 0.7);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+    border-radius: 0 0 15px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    margin: 0 10px;
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.1);
+}
+
+.title-compact {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+}
+
+.game-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+    padding: 15px;
+}
+
+#game-canvas {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 3px solid var(--neon-cyan);
+    border-radius: 10px;
+    box-shadow: var(--glow-cyan);
+    image-rendering: pixelated;
+    background: #000;
+}
+
+/* ============================================
+   HUD STYLES - Glassmorphism
+   ============================================ */
+
+#hud-compact {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.hud-label {
+    color: var(--neon-cyan);
+    font-weight: bold;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.hud-value {
+    color: var(--neon-yellow);
+    min-width: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.hud-icon {
+    font-size: 16px;
+}
+
+/* INDICATORI CHIAVE E BANDIERA - SEMPLICI */
+.key-indicator, .flag-indicator {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+}
+
+.key-indicator img, .flag-indicator img {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    object-fit: contain;
+}
+
+.key-indicator.has-key, .flag-indicator.has-flag {
+    /* Rimosso bagliore e animazione */
+    z-index: 2;
+    opacity: 1;
+}
+
+/* ZOOM CONTROLS - ELEGANTI E MINIMALI */
+.zoom-area {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.zoom-btn {
+    background: transparent;
+    border: none;
+    color: var(--neon-cyan);
+    width: 48px;
+    height: 48px;
+    font-size: 32px;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    touch-action: none;
+    text-shadow: 0 0 10px var(--neon-cyan);
+    transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.zoom-btn:active {
+    opacity: 0.5;
+    transform: scale(1.2);
+}
+
+.zoom-icon {
+    font-size: 18px;
+    pointer-events: none;
+    opacity: 0.5;
+    color: var(--neon-cyan);
+    margin: 0 -5px;
+}
+
+/* ============================================
+   GAME OVER OVERLAY
+   ============================================ */
+
+#game-over-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(50, 0, 0, 0.88);
+    z-index: 5000;
+    justify-content: center;
+    align-items: center;
+}
+
+#game-over-overlay.show {
+    display: flex;
+}
+
+.game-over-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    padding: 40px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 3px solid #ff0000;
+    border-radius: 14px;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+}
+
+.game-over-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 48px;
+    font-weight: 900;
+    color: #ffffff;
+    text-shadow: 0 0 20px #ff0000;
+}
+
+.game-over-btn {
+    padding: 12px 30px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #cc0000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ============================================
+   TOUCH CONTROLS
+   ============================================ */
+
+#touch-controls {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    display: none;
+}
+
+.controls-left,
+.controls-right {
+    position: absolute;
+    bottom: 40px;
+    pointer-events: all;
+}
+
+.controls-left { left: 40px; }
+.controls-right { right: 40px; }
+
+#joystick-base {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid rgba(0, 255, 255, 0.3);
+    position: relative;
+}
+
+#joystick-stick {
+    width: 60px;
+    height: 60px;
+    background: var(--neon-magenta);
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: var(--glow-magenta);
+}
+
+#btn-fly {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid var(--neon-green);
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--neon-green);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    box-shadow: var(--glow-green);
+}
+
+@media (pointer: coarse) {
+    #touch-controls { display: block; }
+}

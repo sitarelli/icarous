@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icarous Lab</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --orange: #F89520;
+        --glass: rgba(255, 255, 255, 0.07);
+        --border: rgba(255, 255, 255, 0.16);
+        --hl: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        --ok: #5CF29A;
+        --warn: #FFD54A;
+        --bad: #ff6a85;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+        min-height: 100vh;
+        background: radial-gradient(120% 120% at 20% 0%, #1b2a48 0%, #070a12 60%, #000 100%);
+        color: #F5F1E8;
+        font-family: 'Poppins', system-ui, sans-serif;
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 16px;
+        padding: 16px;
+    }
+    aside {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+    }
+    .card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), var(--hl);
+        backdrop-filter: blur(20px) saturate(160%);
+        -webkit-backdrop-filter: blur(20px) saturate(160%);
+        border-radius: 22px;
+        padding: 16px;
+    }
+    h1 { font-family: 'Anton', sans-serif; font-weight: 400; font-size: 34px; letter-spacing: 3px; line-height: 1; }
+    h1 span { color: var(--orange); }
+    h2 { font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: rgba(255, 255, 255, 0.6); margin-bottom: 10px; }
+    p.small { font-size: 12px; color: rgba(255, 255, 255, 0.6); line-height: 1.5; margin-top: 6px; }
+    .level {
+        width: 100%;
+        text-align: left;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.04);
+        color: inherit;
+        font-family: inherit;
+        cursor: pointer;
+    }
+    .level.active { border-color: var(--orange); background: rgba(248, 149, 32, 0.15); }
+    .level b { display: block; font-size: 14px; }
+    .level span { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
+    button.action {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 220, 170, 0.6);
+        background: linear-gradient(180deg, #ffad4a, var(--orange));
+        color: #1a1006;
+        font-family: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+    }
+    button.secondary { background: var(--glass); color: #fff; border-color: var(--border); }
+    textarea {
+        width: 100%;
+        height: 110px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: rgba(0, 0, 0, 0.35);
+        color: #dfe7f5;
+        font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+        padding: 8px;
+        resize: vertical;
+    }
+    input[type=file] { font-family: inherit; font-size: 12px; color: rgba(255, 255, 255, 0.7); width: 100%; }
+    #report { font-size: 12px; line-height: 1.55; }
+    #report .ok { color: var(--ok); }
+    #report .warn { color: var(--warn); }
+    #report .bad { color: var(--bad); }
+    #report li { list-style: none; padding-left: 18px; position: relative; }
+    #report li::before { position: absolute; left: 0; }
+    #report li.ok::before { content: '✓'; }
+    #report li.warn::before { content: '!'; }
+    #report li.bad::before { content: '✕'; }
+    main { display: flex; flex-direction: column; gap: 10px; min-height: calc(100vh - 32px); }
+    .bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.7); }
+    .bar a { color: var(--orange); }
+    iframe {
+        flex: 1;
+        width: 100%;
+        min-height: 480px;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: #000;
+    }
+    kbd { font-family: inherit; font-size: 11px; padding: 1px 6px; border-radius: 6px; border: 1px solid var(--border); background: rgba(255, 255, 255, 0.08); }
+    @media (max-width: 860px) {
+        body { grid-template-columns: 1fr; }
+        aside { max-height: none; }
+        iframe { min-height: 70vh; }
+    }
+</style>
+</head>
+<body>
+<aside>
+    <div class="card">
+        <h1>ICAROUS <span>LAB</span></h1>
+        <p class="small">Qui si provano i livelli nuovi senza toccare il gioco vero: niente salvataggi né record. Nel gioco: <kbd>G</kbd> invincibile, <kbd>K</kbd> prova la morte, <kbd>P</kbd> pausa.</p>
+    </div>
+
+    <div class="card">
+        <h2>Livelli di prova</h2>
+        <div id="level-list"></div>
+    </div>
+
+    <div class="card">
+        <h2>Prova un livello tuo</h2>
+        <p class="small" style="margin:0 0 8px">Dall'editor premi GENERA, copia il testo e incollalo qui:</p>
+        <textarea id="paste" placeholder="loadLevelData({ ... })"></textarea>
+        <button class="action" id="btn-paste" type="button">Prova il codice incollato</button>
+        <p class="small" style="margin:12px 0 6px">…oppure scegli un file .js dal computer:</p>
+        <input type="file" id="file" accept=".js,.txt">
+    </div>
+
+    <div class="card">
+        <h2>Controllo automatico</h2>
+        <div id="report"><p class="small">Scegli un livello per vedere il controllo.</p></div>
+    </div>
+</aside>
+
+<main>
+    <div class="bar">
+        <span id="current">Nessun livello caricato</span>
+        <span><button class="action secondary" id="btn-reload" type="button" style="width:auto;margin:0">Ricarica</button> &nbsp; <a href="index.html">Vai al gioco vero →</a></span>
+    </div>
+    <iframe id="game" title="Icarous - laboratorio" allow="fullscreen; gamepad"></iframe>
+</main>
+
+<script src="levels/test/elenco.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const frame = $('game');
+let currentSrc = null;
+
+/* ---------- avvio del gioco nell'iframe ---------- */
+function play(src, label) {
+    currentSrc = src;
+    $('current').textContent = label;
+    frame.src = `index.html?lab=${encodeURIComponent(src)}&t=${Date.now()}`;
+    frame.focus();
+}
+
+function playText(text, label) {
+    try { sessionStorage.setItem('icarous_lab_level', text); }
+    catch (e) { alert('Il browser non permette di salvare il livello temporaneo.'); return; }
+    validate(text);
+    play('local', label);
+}
+
+/* ---------- elenco ---------- */
+const list = $('level-list');
+(window.TEST_LEVELS || []).forEach(lv => {
+    const b = document.createElement('button');
+    b.className = 'level';
+    b.type = 'button';
+    b.innerHTML = `<b>${lv.name}</b><span>${lv.author ? lv.author + ' · ' : ''}${lv.note || lv.file}</span>`;
+    b.onclick = async () => {
+        document.querySelectorAll('.level').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        try {
+            const text = await (await fetch(`levels/test/${lv.file}?t=${Date.now()}`)).text();
+            validate(text);
+        } catch (e) { $('report').innerHTML = '<p class="small">Impossibile leggere il file per il controllo.</p>'; }
+        play(`levels/test/${lv.file}`, lv.name);
+    };
+    list.appendChild(b);
+});
+if (!list.children.length) list.innerHTML = '<p class="small">Nessun livello in levels/test/elenco.js</p>';
+
+$('btn-paste').onclick = () => {
+    const text = $('paste').value.trim();
+    if (!text) { alert('Incolla prima il codice del livello.'); return; }
+    playText(text, 'Livello incollato');
+};
+$('file').onchange = e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => playText(r.result, f.name);
+    r.readAsText(f);
+};
+$('btn-reload').onclick = () => { if (currentSrc) play(currentSrc, $('current').textContent); };
+
+/* ---------- controllo automatico del livello ----------
+   Stesse regole di docs/THESEUS_LEVEL_DESIGN.md: griglia, cornice, pezzi obbligatori,
+   vasche di lava, e risolvibilità con l'ingombro 3x3 del player e le porte a gruppi. */
+function validate(text) {
+    const out = [];
+    const add = (cls, msg) => out.push(`<li class="${cls}">${msg}</li>`);
+    let d = null;
+    try { new Function('loadLevelData', text)(x => { d = x; }); }
+    catch (e) { $('report').innerHTML = `<ul><li class="bad">Il codice non si legge: ${e.message}</li></ul>`; return; }
+    if (!d || !Array.isArray(d.map)) { $('report').innerHTML = '<ul><li class="bad">Manca loadLevelData({ map: [...] })</li></ul>'; return; }
+
+    const map = d.map, rows = map.length, cols = map[0].length;
+    const T = c => typeof c === 'object' ? c.type : c;
+    const G = c => typeof c === 'object' ? (c.group || 'A') : 'A';
+
+    const badRows = map.filter(r => r.length !== cols).length;
+    if (badRows || (d.rows && d.rows !== rows) || (d.cols && d.cols !== cols)) add('bad', `Griglia irregolare (righe di lunghezza diversa o cols/rows sbagliati)`);
+    else add('ok', `Griglia ${cols}×${rows}, tileSize ${d.tileSize || '?'}`);
+
+    let frame = true;
+    for (let x = 0; x < cols; x++) if (T(map[0][x]) !== 1 || T(map[rows - 1][x]) !== 1) frame = false;
+    for (let y = 0; y < rows; y++) if (T(map[y][0]) !== 1 || T(map[y][cols - 1]) !== 1) frame = false;
+    add(frame ? 'ok' : 'warn', frame ? 'Cornice di muri chiusa' : 'Cornice non chiusa: l\'editor potrebbe ritagliare il livello');
+
+    // blocchi (come il parser del gioco)
+    const seen = new Set(), blocks = [];
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        const t = T(map[y][x]);
+        if (t === 0 || t === 1 || seen.has(y * cols + x)) continue;
+        const g = G(map[y][x]);
+        let w = 1, h = 1;
+        while (x + w < cols && T(map[y][x + w]) === t && G(map[y][x + w]) === g) w++;
+        while (y + h < rows && [...Array(w).keys()].every(k => T(map[y + h][x + k]) === t && G(map[y + h][x + k]) === g)) h++;
+        for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) seen.add(yy * cols + xx);
+        blocks.push({ t, g, x, y, w, h });
+    }
+    const count = t => blocks.filter(b => b.t === t).length;
+    [[9, 'Theseus (9)'], [10, 'Chiave (10)'], [3, 'Ragazza (3)']].forEach(([t, n]) => {
+        const c = count(t);
+        add(c === 1 ? 'ok' : 'bad', `${n}: ${c === 1 ? 'presente' : c + ' blocchi (ne serve 1)'}`);
+    });
+    const thes = blocks.find(b => b.t === 9);
+    if (thes && (thes.w !== 3 || thes.h !== 3)) add('warn', `Theseus è ${thes.w}×${thes.h}: consigliato 3×3`);
+    const fl = count(7);
+    add(fl ? 'ok' : 'warn', fl ? `Checkpoint (cagnolino): ${fl}` : 'Nessun cagnolino: niente checkpoint');
+
+    // lava
+    let lavaBad = 0, lavaLow = 0;
+    for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+        if (T(map[y][x]) !== 2) continue;
+        const below = y + 1 < rows ? T(map[y + 1][x]) : 1;
+        if (below !== 1 && below !== 2) lavaBad++;
+        if (![-1, 1].every(dx => [1, 2].includes(T(map[y][x + dx])))) lavaBad++;
+        if (y > 0 && T(map[y - 1][x]) !== 2) {
+            let l = x, r = x;
+            while (T(map[y][l - 1]) === 2) l--;
+            while (T(map[y][r + 1]) === 2) r++;
+            if (T(map[y - 1][l - 1]) !== 1 || T(map[y - 1][r + 1]) !== 1) lavaLow++;
+        }
+    }
+    if (lavaBad) add('bad', `Lava fuori vasca in ${lavaBad} punti`);
+    else if (lavaLow) add('warn', `Vasche con sponde basse (ci si brucia sul bordo)`);
+    else add('ok', 'Vasche di lava a regola');
+
+    // porte senza interruttore
+    const doorGroups = new Set(blocks.filter(b => b.t === 6).map(b => b.g));
+    const openGroups = new Set(blocks.filter(b => b.t === 4).map(b => b.g));
+    const orphan = [...doorGroups].filter(g => !openGroups.has(g));
+    if (orphan.length) add('bad', `Porte senza OPEN: gruppo ${orphan.join(', ')}`);
+    else if (doorGroups.size) add('ok', `Porte: gruppi ${[...doorGroups].sort().join(', ')}`);
+
+    // risolvibilità con ingombro 3x3 e porte
+    if (thes) {
+        const pw = thes.w, ph = thes.h;
+        const blocked = (x, y, open) => { const c = map[y][x]; return T(c) === 1 || (T(c) === 6 && !open.has(G(c))); };
+        const region = open => {
+            const ok = (x, y) => x > 0 && y > 0 && x + pw < cols && y + ph < rows && (() => { for (let j = 0; j < ph; j++) for (let i = 0; i < pw; i++) if (blocked(x + i, y + j, open)) return false; return true; })();
+            const start = [thes.x, thes.y], seenR = new Set([start + '']), q = [start];
+            while (q.length) {
+                const [x, y] = q.shift();
+                for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+                    const n = [x + dx, y + dy];
+                    if (!seenR.has(n + '') && ok(...n)) { seenR.add(n + ''); q.push(n); }
+                }
+            }
+            return seenR;
+        };
+        const touches = (reg, b) => { for (let px = b.x - pw + 1; px < b.x + b.w; px++) for (let py = b.y - ph + 1; py < b.y + b.h; py++) if (reg.has(px + ',' + py)) return true; return false; };
+        const key = blocks.find(b => b.t === 10), woman = blocks.find(b => b.t === 3);
+        const states = new Map([['', []]]), q = [new Set()];
+        let solution = null;
+        while (q.length && states.size < 400) {
+            const st = q.shift(), reg = region(st);
+            if (key && woman && touches(reg, key) && touches(reg, woman)) { solution = states.get([...st].sort().join('')); break; }
+            blocks.filter(b => b.t === 4 && !st.has(b.g) && touches(reg, b)).forEach(b => {
+                const ns = new Set(st); ns.add(b.g);
+                const k = [...ns].sort().join('');
+                if (!states.has(k)) { states.set(k, [...states.get([...st].sort().join('')), b.g]); q.push(ns); }
+            });
+        }
+        if (solution) add('ok', `Risolvibile${solution.length ? ' — ordine porte: ' + solution.join(' → ') : ' (nessuna porta necessaria)'}`);
+        else add('bad', 'Non risolvibile: chiave o ragazza irraggiungibili (passaggi troppo stretti per un Theseus 3×3 o porte bloccate)');
+    }
+
+    const walls = map.flat().filter(c => T(c) === 1).length / (rows * cols);
+    add(walls > 0.2 ? 'warn' : 'ok', `Densità muri ${(walls * 100).toFixed(1)}%${walls > 0.2 ? ' (alta: stanze troppo piene?)' : ''}`);
+    add('ok', `Ricariche: ${count(8)} lampadine, ${count(12)} stelle, ${count(16)} timer · Nemici: ${count(11) + count(13) + count(14) + count(15)}`);
+
+    $('report').innerHTML = `<ul>${out.join('')}</ul>`;
+}
+
+// Apre subito il primo livello dell'elenco
+if (list.querySelector('.level')) list.querySelector('.level').click();
+</script>
+</body>
+</html>

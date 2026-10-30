@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Theseus Level Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+  :root{--bg:#0a0c0f;--panel:#0f1318;--border:#1e2a38;--accent:#00e5ff;--accent2:#ff6b35;--success:#39ff14;--warn:#ffd600;--text:#c8d8e8;--dim:#4a5a6a;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;min-height:100vh;padding:20px;}
+  h1{font-family:'Orbitron',monospace;font-weight:900;font-size:1.3rem;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:3px;}
+  .subtitle{color:var(--dim);font-size:.7rem;letter-spacing:2px;margin-bottom:16px;}
+  .layout{display:grid;grid-template-columns:300px 1fr;gap:14px;max-width:1600px;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;}
+  .stitle{font-family:'Orbitron',monospace;font-size:.6rem;color:var(--accent);letter-spacing:3px;margin:12px 0 9px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+  .stitle:first-child{margin-top:0;}
+  .param-row{margin-bottom:10px;}
+  .param-label{font-size:.67rem;color:var(--dim);letter-spacing:1px;margin-bottom:3px;display:flex;justify-content:space-between;align-items:center;}
+  .param-label span{color:var(--accent2);font-weight:bold;}
+  .hint{font-size:.57rem;color:var(--dim);margin-top:2px;line-height:1.4;}
+  input[type=range]{width:100%;-webkit-appearance:none;height:3px;background:var(--border);outline:none;border-radius:2px;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 6px var(--accent);}
+  .btn{width:100%;padding:13px;background:transparent;border:2px solid var(--accent);color:var(--accent);font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;letter-spacing:3px;cursor:pointer;border-radius:2px;transition:all .2s;text-transform:uppercase;margin-top:7px;}
+  .btn:hover{background:var(--accent);color:var(--bg);box-shadow:0 0 18px var(--accent);}
+  .btn:disabled{border-color:var(--dim);color:var(--dim);cursor:not-allowed;background:transparent;box-shadow:none;}
+  .btn-warn{border-color:var(--accent2);color:var(--accent2);font-size:.68rem;padding:9px;margin-top:7px;}
+  .btn-warn:hover{background:var(--accent2);color:var(--bg);box-shadow:0 0 18px var(--accent2);}
+  .btn-warn:disabled{border-color:var(--dim);color:var(--dim);cursor:not-allowed;background:transparent;box-shadow:none;}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px;}
+  .stat-box{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:9px;text-align:center;}
+  .stat-val{font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:var(--success);}
+  .stat-label{font-size:.58rem;color:var(--dim);letter-spacing:1px;margin-top:2px;}
+  .log{background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:9px;height:75px;overflow-y:auto;font-size:.65rem;color:var(--dim);margin-top:10px;}
+  .log .ok{color:var(--success);}.log .err{color:var(--accent2);}.log .info{color:var(--accent);}
+  .progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--success));width:0%;transition:width .08s;}
+  #mapCanvas{display:block;width:100%;image-rendering:pixelated;border:1px solid var(--border);border-radius:2px;}
+  .output-panel{margin-top:14px;}
+  textarea{width:100%;height:110px;background:var(--bg);border:1px solid var(--border);color:var(--success);font-family:'Share Tech Mono',monospace;font-size:.58rem;padding:7px;border-radius:2px;resize:none;outline:none;}
+  .legend{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;}
+  .leg-item{display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--dim);}
+  .leg-dot{width:9px;height:9px;border-radius:1px;flex-shrink:0;}
+  .score-badge{font-family:'Orbitron',monospace;font-size:.65rem;color:var(--warn);margin-top:5px;letter-spacing:2px;}
+  .scorer-legend{margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:10px;font-size:.62rem;line-height:1.8;color:var(--dim);}
+  .scorer-legend b{color:var(--accent2);}
+  .scorer-legend .sl-title{font-family:'Orbitron',monospace;font-size:.55rem;color:var(--accent);letter-spacing:2px;margin-bottom:6px;}
+  .toggle-lbl{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.63rem;color:var(--dim);letter-spacing:1px;user-select:none;}
+  .toggle-lbl input[type=checkbox]{width:13px;height:13px;accent-color:var(--accent);cursor:pointer;}
+  .toggle-lbl span{transition:color .15s;}
+  .toggle-lbl:hover span{color:var(--text);}
+  .output-btns{display:flex;gap:7px;}
+  .output-btns .btn-warn{flex:1;}
+</style>
+</head>
+<body>
+<h1>THESEUS LEVEL GEN</h1>
+<p class="subtitle">PROBABILISTIC ENGINE — RUNS IN YOUR BROWSER</p>
+<div class="layout">
+  <div><div class="panel">
+    <div class="stitle">DISPLAY</div>
+    <div class="param-row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <label class="toggle-lbl"><input type="checkbox" id="showPath" checked onchange="redrawIfReady()"> <span>PERCORSO</span></label>
+      <label class="toggle-lbl"><input type="checkbox" id="showGrid" checked onchange="redrawIfReady()"> <span>GRIGLIA</span></label>
+    </div>
+    <div class="param-row">
+      <div class="param-label">TILE SIZE (px) <span id="tsVal">8</span></div>
+      <input type="range" id="tileSize" min="4" max="16" step="1" value="8" oninput="document.getElementById('tsVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">COLS <span id="colsVal">79</span></div>
+      <input type="range" id="cols" min="40" max="300" step="1" value="79" oninput="document.getElementById('colsVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">ROWS <span id="rowsVal">59</span></div>
+      <input type="range" id="rows" min="30" max="200" step="1" value="59" oninput="document.getElementById('rowsVal').textContent=this.value">
+    </div>
+    <div class="stitle">GENERAZIONE</div>
+    <div class="param-row">
+      <div class="param-label">ITERAZIONI <span id="iterVal">3000</span></div>
+      <input type="range" id="iterations" min="500" max="20000" step="500" value="3000" oninput="document.getElementById('iterVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">DENSITA MURI (segm.) <span id="densVal">60</span></div>
+      <input type="range" id="density" min="10" max="300" step="5" value="60" oninput="document.getElementById('densVal').textContent=this.value">
+      <div class="hint">Numero di segmenti. Ogni segmento può formare L o T.</div>
+    </div>
+    <div class="param-row">
+      <div class="param-label">LUNGHEZZA SEG MAX <span id="segLenVal">20</span></div>
+      <input type="range" id="segLen" min="3" max="60" step="1" value="20" oninput="document.getElementById('segLenVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">APERTURA PORTA (tiles) <span id="doorWVal">7</span></div>
+      <input type="range" id="doorW" min="4" max="12" step="1" value="7" oninput="document.getElementById('doorWVal').textContent=this.value">
+      <div class="hint">Min 4 tiles — il player occupa 3×3, serve almeno 4 tile liberi per passare.</div>
+    </div>
+    <div class="param-row">
+      <div class="param-label">PORTE <span id="doorsVal">2</span></div>
+      <input type="range" id="doors" min="1" max="7" step="1" value="2" oninput="document.getElementById('doorsVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">VASCHE LAVA <span id="lavaVal">2</span></div>
+      <input type="range" id="lavaPools" min="0" max="7" step="1" value="2" oninput="document.getElementById('lavaVal').textContent=this.value">
+    </div>
+    <div class="stitle">SCORER</div>
+    <div class="param-row">
+      <div class="param-label">DIST CHIAVE-DONNA <span id="wKWVal">25</span></div>
+      <input type="range" id="wKW" min="0" max="50" step="5" value="25" oninput="document.getElementById('wKWVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">DIST PARTENZA-CHIAVE <span id="wSKVal">15</span></div>
+      <input type="range" id="wSK" min="0" max="50" step="5" value="15" oninput="document.getElementById('wSKVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">PENALITA VICINI <span id="wPENVal">30</span></div>
+      <input type="range" id="wPEN" min="0" max="50" step="5" value="30" oninput="document.getElementById('wPENVal').textContent=this.value">
+    </div>
+    <div class="param-row">
+      <div class="param-label">CONTINUITA MURI <span id="wCONTVal">50</span></div>
+      <input type="range" id="wCONT" min="0" max="100" step="5" value="50" oninput="document.getElementById('wCONTVal').textContent=this.value">
+      <div class="hint">Premia segmenti lunghi e forme L/T. Max 100.</div>
+    </div>
+    <button class="btn" id="btnRun" onclick="runGenerator()">ELABORA</button>
+    <div class="output-btns">
+      <button class="btn btn-warn" id="btnCopy" onclick="copyJS()" disabled>COPIA JS</button>
+      <button class="btn btn-warn" id="btnSave" onclick="saveJS()" disabled>SALVA JS</button>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-val" id="statValid">-</div><div class="stat-label">VALID</div></div>
+      <div class="stat-box"><div class="stat-val" id="statTotal">-</div><div class="stat-label">TOTALE</div></div>
+      <div class="stat-box"><div class="stat-val" id="statScore">-</div><div class="stat-label">SCORE</div></div>
+      <div class="stat-box"><div class="stat-val" id="statTime">-</div><div class="stat-label">TEMPO(s)</div></div>
+    </div>
+    <div class="log" id="log"></div>
+  </div></div>
+
+  <div>
+    <div class="panel">
+      <div class="stitle">PREVIEW</div>
+      <canvas id="mapCanvas" width="800" height="500"></canvas>
+      <div class="score-badge" id="scoreBadge"></div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#3a4a5a"></div>MURO</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#0a1018"></div>VUOTO</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff4400"></div>LAVA</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#c17f3a"></div>PORTA</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#39ff14"></div>OPEN</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#ff6b35"></div>CLOSE</div>
+        <div class="leg-item">🧑 PARTENZA</div>
+        <div class="leg-item">👩 DONNA</div>
+        <div class="leg-item">🔑 CHIAVE</div>
+        <div class="leg-item">⭐ STELLA</div>
+        <div class="leg-item">💡 LAMPADINA</div>
+        <div class="leg-item">🚩 BANDIERA</div>
+        <div class="leg-item"><div class="leg-dot" style="background:rgba(0,200,255,0.7);border-radius:50%"></div>PERCORSO</div>
+      </div>
+    </div>
+    <div class="panel output-panel">
+      <div class="stitle">OUTPUT JS</div>
+      <textarea id="outputJS" readonly placeholder="// Il JS apparira qui dopo elaborazione..."></textarea>
+      <div class="scorer-legend">
+        <div class="sl-title">LEGENDA SCORER</div>
+        <b>DIST CHIAVE-DONNA</b> — Premia livelli in cui la chiave (🔑) e la donna (👩) sono lontane tra loro.<br>
+        <b>DIST PARTENZA-CHIAVE</b> — Premia sia la distanza partenza→chiave sia partenza→donna.<br>
+        <b>PENALITA VICINI</b> — Sottrae punti se partenza troppo vicina alla chiave (&lt;8 tile) o chiave alla donna.<br>
+        <b>CONTINUITA MURI</b> — Premia run lunghe (L²). Max peso 100. Penalizza frammentazione.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var T_EMPTY=0,T_WALL=1,T_LAVA=2,T_WOMAN=3,T_CLOSE=4,T_OPEN=5,
+    T_DOOR=6,T_FLAG=7,T_BULB=8,T_SPAWN=9,T_KEY=10,T_STAR=12;
+var GROUPS=['A','B','C','D','E','F','G'];
+
+var LAVA_DOOR_MIN   = 8;
+var DOOR_FRONT      = 8;
+var MIN_PAR         = 8;  // corridoi min 8 tile tra segmenti paralleli (player 3×3 → serve almeno 4 liberi)
+var LAVA_FLOOR_EXT  = 5;
+var DOOR_ITEM_MIN   = 10;
+var WOMAN_FLOOR_W   = 5;
+var PATH_ARROW_STEP = 10;
+var bestJS='';
+
+var EMOJI_MAP={};
+EMOJI_MAP[T_WOMAN]='👩';EMOJI_MAP[T_SPAWN]='🧑';EMOJI_MAP[T_KEY]='🔑';
+EMOJI_MAP[T_STAR]='⭐';EMOJI_MAP[T_BULB]='💡';EMOJI_MAP[T_FLAG]='🚩';
+
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function dist(a,b){return Math.abs(a.c-b.c)+Math.abs(a.r-b.r);}
+function ttype(v){return (v!==null&&typeof v==='object')?v.type:v;}
+function tgroup(v){return (v!==null&&typeof v==='object')?v.group:null;}
+function ulog(msg,cls){
+  var el=document.getElementById('log');
+  el.innerHTML+='<div class="'+(cls||'')+'">'+ msg+'</div>';
+  el.scrollTop=el.scrollHeight;
+}
+
+// ── BUILD GROUPS MAP (shared utility) ─────────────────────────────────────────
+function buildGroups(map,COLS,ROWS){
+  var groups={},gi=0;
+  for(var r=0;r<ROWS;r++)
+    for(var c=0;c<COLS;c++){
+      var t=ttype(map[r][c]),g=tgroup(map[r][c]);
+      if((t===T_DOOR||t===T_OPEN||t===T_CLOSE)&&g&&groups[g]===undefined) groups[g]=gi++;
+    }
+  return groups;
+}
+
+// ── BFS CORE — usato da validate e validateSwitchesNecessary ─────────────────
+// blockedGroup: se >=0, l'OPEN di quel gruppo viene ignorato (simula switch rimosso)
+function bfsCanSolve(map,sc,sr,COLS,ROWS,groups,blockedGroup){
+  var visited={};
+  var queue=[[sc,sr,0,0]];
+  var head=0;
+  var DIRS_C=[1,-1,0,0];
+  var DIRS_R=[0,0,1,-1];
+  while(head<queue.length){
+    var it=queue[head++];
+    var c=it[0],r=it[1],hk=it[2],mask=it[3];
+    var key=c+','+r+','+hk+','+mask;
+    if(visited[key]) continue;
+    visited[key]=true;
+    var t=ttype(map[r][c]),g=tgroup(map[r][c]);
+    if(t===T_WALL||t===T_LAVA) continue;
+    var nhk=hk,nmask=mask;
+    if(t===T_KEY) nhk=1;
+    // OPEN attiva il bit solo se non è il gruppo bloccato
+    if(t===T_OPEN&&g&&groups[g]!==undefined&&groups[g]!==blockedGroup) nmask|=(1<<groups[g]);
+    if(t===T_CLOSE&&g&&groups[g]!==undefined) nmask&=~(1<<groups[g]);
+    if(t===T_WOMAN&&nhk===1) return true;
+    for(var d=0;d<4;d++){
+      var nc=c+DIRS_C[d],nr=r+DIRS_R[d];
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+      var nt=ttype(map[nr][nc]),ng=tgroup(map[nr][nc]);
+      if(nt===T_WALL||nt===T_LAVA) continue;
+      if(nt===T_DOOR&&ng){var gi2=groups[ng];if(gi2===undefined||(nmask&(1<<gi2))===0) continue;}
+      var nk=nc+','+nr+','+nhk+','+nmask;
+      if(!visited[nk]) queue.push([nc,nr,nhk,nmask]);
+    }
+  }
+  return false;
+}
+
+// ── VALIDATOR BFS ─────────────────────────────────────────────────────────────
+// Ignora T_CLOSE — il CLOSE è decorativo in questo generatore; non deve bloccare.
+function validate(map,sc,sr,kc,kr,wc,wr,COLS,ROWS){
+  var groups=buildGroups(map,COLS,ROWS);
+  return bfsCanSolveNoClose(map,sc,sr,COLS,ROWS,groups,-1);
+}
+
+// ── VERIFICA CHE OGNI OPEN SIA NECESSARIO ────────────────────────────────────
+// Per ogni gruppo G: simula la mappa senza OPEN G (non può aprire porta G).
+// Se il livello è ancora risolvibile → OPEN G è orfano → false.
+// Nota: il CLOSE non viene considerato ai fini della necessità.
+function validateSwitchesNecessary(map,sc,sr,COLS,ROWS){
+  var groups=buildGroups(map,COLS,ROWS);
+  var groupIds=[];
+  for(var g in groups) groupIds.push(groups[g]);
+  if(groupIds.length===0) return true;
+  for(var i=0;i<groupIds.length;i++){
+    var gi=groupIds[i];
+    // Test: senza questo OPEN, la soluzione esiste ancora?
+    // Usiamo bfsIgnoreClose per non far bloccare il CLOSE nel test
+    if(bfsCanSolveNoClose(map,sc,sr,COLS,ROWS,groups,gi)) return false;
+  }
+  return true;
+}
+
+// BFS che ignora completamente T_CLOSE (come se non esistesse)
+// e blocca il gruppo specificato (blockedGroup). Usato solo per il test di necessità.
+function bfsCanSolveNoClose(map,sc,sr,COLS,ROWS,groups,blockedGroup){
+  var visited={};
+  var queue=[[sc,sr,0,0]];
+  var head=0;
+  var DIRS_C=[1,-1,0,0];
+  var DIRS_R=[0,0,1,-1];
+  while(head<queue.length){
+    var it=queue[head++];
+    var c=it[0],r=it[1],hk=it[2],mask=it[3];
+    var key=c+','+r+','+hk+','+mask;
+    if(visited[key]) continue;
+    visited[key]=true;
+    var t=ttype(map[r][c]),g=tgroup(map[r][c]);
+    if(t===T_WALL||t===T_LAVA) continue;
+    var nhk=hk,nmask=mask;
+    if(t===T_KEY) nhk=1;
+    if(t===T_OPEN&&g&&groups[g]!==undefined&&groups[g]!==blockedGroup) nmask|=(1<<groups[g]);
+    // T_CLOSE ignorato completamente nel test di necessità
+    if(t===T_WOMAN&&nhk===1) return true;
+    for(var d=0;d<4;d++){
+      var nc=c+DIRS_C[d],nr=r+DIRS_R[d];
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+      var nt=ttype(map[nr][nc]),ng=tgroup(map[nr][nc]);
+      if(nt===T_WALL||nt===T_LAVA) continue;
+      if(nt===T_DOOR&&ng){var gi2=groups[ng];if(gi2===undefined||(nmask&(1<<gi2))===0) continue;}
+      var nk=nc+','+nr+','+nhk+','+nmask;
+      if(!visited[nk]) queue.push([nc,nr,nhk,nmask]);
+    }
+  }
+  return false;
+}
+
+// ── TRACE PATH BFS (ottimizzato: head index) ──────────────────────────────────
+function tracePath(map,sc,sr,COLS,ROWS){
+  var groups=buildGroups(map,COLS,ROWS);  var visited={},parent={};
+  var startKey=sc+','+sr+',0,0';
+  parent[startKey]=null;
+  var queue=[[sc,sr,0,0]];
+  var head=0;
+  var goalKey=null;
+  var DIRS_C=[1,-1,0,0];
+  var DIRS_R=[0,0,1,-1];
+
+  while(head<queue.length){
+    var it=queue[head++];
+    var c=it[0],r=it[1],hk=it[2],mask=it[3];
+    var key=c+','+r+','+hk+','+mask;
+    if(visited[key]) continue;
+    visited[key]=true;
+    var t=ttype(map[r][c]),g=tgroup(map[r][c]);
+    if(t===T_WALL||t===T_LAVA) continue;
+    var nhk=hk,nmask=mask;
+    if(t===T_KEY) nhk=1;
+    if(t===T_OPEN&&g&&groups[g]!==undefined) nmask|=(1<<groups[g]);
+    if(t===T_CLOSE&&g&&groups[g]!==undefined) nmask&=~(1<<groups[g]);
+    if(t===T_WOMAN&&nhk===1){goalKey=key;break;}
+    for(var d=0;d<4;d++){
+      var nc=c+DIRS_C[d],nr=r+DIRS_R[d];
+      if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+      var nt=ttype(map[nr][nc]),ng=tgroup(map[nr][nc]);
+      if(nt===T_WALL||nt===T_LAVA) continue;
+      if(nt===T_DOOR&&ng){var gi3=groups[ng];if(gi3===undefined||(nmask&(1<<gi3))===0) continue;}
+      var nk=nc+','+nr+','+nhk+','+nmask;
+      if(!visited[nk]&&parent[nk]===undefined){parent[nk]=key;queue.push([nc,nr,nhk,nmask]);}
+    }
+  }
+  if(!goalKey) return null;
+  var path=[];
+  var cur=goalKey;
+  while(cur!==null){
+    var parts=cur.split(',');
+    path.push({c:+parts[0],r:+parts[1]});
+    cur=parent[cur];
+  }
+  path.reverse();
+  return path;
+}
+
+// ── CONTINUITY SCORER ─────────────────────────────────────────────────────────
+function continuityScore(map,COLS,ROWS){
+  var sumH=0,sumV=0,tot=0;
+  for(var r=0;r<ROWS;r++){
+    var run=0;
+    for(var c=0;c<COLS;c++){
+      if(ttype(map[r][c])===T_WALL){run++;tot++;}
+      else if(run>0){sumH+=run*run;run=0;}
+    }
+    if(run>0) sumH+=run*run;
+  }
+  for(var c2=0;c2<COLS;c2++){
+    var rv=0;
+    for(var r2=0;r2<ROWS;r2++){
+      if(ttype(map[r2][c2])===T_WALL) rv++;
+      else if(rv>0){sumV+=rv*rv;rv=0;}
+    }
+    if(rv>0) sumV+=rv*rv;
+  }
+  return tot===0?0:(sumH+sumV)/(2*tot*tot);
+}
+
+function scoreLevel(map,sp,kp,wp,COLS,ROWS,W){
+  var maxD=COLS+ROWS,s=0;
+  s+=W.kw*(dist(kp,wp)/maxD);
+  s+=W.sk*(dist(sp,kp)/maxD);
+  s+=W.sk*(dist(sp,wp)/maxD);
+  if(dist(sp,kp)<8) s-=W.pen;
+  if(dist(kp,wp)<8) s-=W.pen;
+  s+=W.cont*continuityScore(map,COLS,ROWS);
+  return s;
+}
+
+// ── VASCA LAVA ────────────────────────────────────────────────────────────────
+var LW=9,LH=6;
+function canPlaceLava(map,c,r,COLS,ROWS,safe){
+  if(c<1||c+LW>COLS-1||r<1||r+LH>ROWS-1) return false;
+  for(var dr=0;dr<LH;dr++)
+    for(var dc=0;dc<LW;dc++)
+      if(ttype(map[r+dr][c+dc])!==T_EMPTY) return false;
+  var cx=c+4,cy=r+3;
+  // safe è ora un Set: no loop lineare
+  for(var di=-16;di<=16;di++)
+    for(var dj=-16;dj<=16;dj++)
+      if(Math.abs(di)+Math.abs(dj)<16&&safe.has((cx+dj)+','+(cy+di))) return false;
+  var floorRow=r+LH-1;
+  for(var fe=1;fe<=LAVA_FLOOR_EXT;fe++){
+    var lc=c-fe,rc2=c+LW-1+fe;
+    if(lc<1||rc2>COLS-2) return false;
+    if(ttype(map[floorRow][lc])!==T_EMPTY) return false;
+    if(ttype(map[floorRow][rc2])!==T_EMPTY) return false;
+  }
+  return true;
+}
+function placeLava(map,c,r){
+  for(var dr=0;dr<=LH-2;dr++){
+    map[r+dr][c]=T_WALL;
+    for(var dc=1;dc<=LW-2;dc++) map[r+dr][c+dc]=T_LAVA;
+    map[r+dr][c+LW-1]=T_WALL;
+  }
+  for(var dc=0;dc<LW;dc++) map[r+LH-1][c+dc]=T_WALL;
+  var floorRow=r+LH-1;
+  for(var fe=1;fe<=LAVA_FLOOR_EXT;fe++){
+    map[floorRow][c-fe]=T_WALL;
+    map[floorRow][c+LW-1+fe]=T_WALL;
+  }
+}
+function getLavaPositions(map,COLS,ROWS){
+  var lp=[];
+  for(var r=0;r<ROWS;r++)
+    for(var c=0;c<COLS;c++)
+      if(ttype(map[r][c])===T_LAVA) lp.push({c:c,r:r});
+  return lp;
+}
+function farFromLava(lp,c,r){
+  for(var i=0;i<lp.length;i++) if(dist(lp[i],{c:c,r:r})<LAVA_DOOR_MIN) return false;
+  return true;
+}
+
+// ── FILL MURI ─────────────────────────────────────────────────────────────────
+// safe è ora un Set di stringhe "c,r" — lookup O(1)
+function fillWallSegments(map,COLS,ROWS,numSegs,segLenMax,safe){
+  var safeRad=6;
+  function isSafe(c,r){
+    if(c<2||c>COLS-3||r<2||r>ROWS-3) return false;
+    // Controlla intorno in raggio safeRad usando il Set
+    for(var dr=-safeRad;dr<=safeRad;dr++)
+      for(var dc=-safeRad;dc<=safeRad;dc++)
+        if(Math.abs(dr)+Math.abs(dc)<=safeRad&&safe.has((c+dc)+','+(r+dr))) return false;
+    return true;
+  }
+  function wouldCreate2x2(c,r){
+    var corners=[[-1,-1],[0,-1],[-1,0],[0,0]];
+    for(var ci=0;ci<4;ci++){
+      var dc=corners[ci][0],dr=corners[ci][1];
+      var c0=c+dc,r0=r+dr;
+      if(c0<0||c0+1>=COLS||r0<0||r0+1>=ROWS) continue;
+      var n=0;
+      for(var qr=r0;qr<=r0+1;qr++)
+        for(var qc=c0;qc<=c0+1;qc++)
+          if(ttype(map[qr][qc])===T_WALL||(qr===r&&qc===c)) n++;
+      if(n===4) return true;
+    }
+    return false;
+  }
+  function hasParallelH(r2,c2s,c2e){
+    for(var dr=-MIN_PAR;dr<=MIN_PAR;dr++){
+      if(dr===0) continue;
+      var rr=r2+dr; if(rr<0||rr>=ROWS) continue;
+      for(var cc=c2s;cc<=c2e;cc++) if(ttype(map[rr][cc])===T_WALL) return true;
+    }
+    return false;
+  }
+  function hasParallelV(c3,r3s,r3e){
+    for(var dc=-MIN_PAR;dc<=MIN_PAR;dc++){
+      if(dc===0) continue;
+      var cc=c3+dc; if(cc<0||cc>=COLS) continue;
+      for(var rr=r3s;rr<=r3e;rr++) if(ttype(map[rr][cc])===T_WALL) return true;
+    }
+    return false;
+  }
+  function canPlace(tiles){
+    if(!tiles.length) return false;
+    var i,c,r;
+    for(i=0;i<tiles.length;i++){
+      c=tiles[i].c;r=tiles[i].r;
+      if(c<2||c>COLS-3||r<2||r>ROWS-3) return false;
+      if(ttype(map[r][c])!==T_EMPTY) return false;
+      if(!isSafe(c,r)) return false;
+      if(wouldCreate2x2(c,r)) return false;
+    }
+    var byRow={},byCol={};
+    for(i=0;i<tiles.length;i++){
+      var t=tiles[i];
+      if(!byRow[t.r]) byRow[t.r]={mn:t.c,mx:t.c};
+      else{byRow[t.r].mn=Math.min(byRow[t.r].mn,t.c);byRow[t.r].mx=Math.max(byRow[t.r].mx,t.c);}
+      if(!byCol[t.c]) byCol[t.c]={mn:t.r,mx:t.r};
+      else{byCol[t.c].mn=Math.min(byCol[t.c].mn,t.r);byCol[t.c].mx=Math.max(byCol[t.c].mx,t.r);}
+    }
+    for(var rk in byRow){var sg=byRow[rk];if(sg.mx-sg.mn>=2&&hasParallelH(+rk,sg.mn,sg.mx)) return false;}
+    for(var ck in byCol){var sg2=byCol[ck];if(sg2.mx-sg2.mn>=2&&hasParallelV(+ck,sg2.mn,sg2.mx)) return false;}
+    return true;
+  }
+  function doPlace(tiles){for(var i=0;i<tiles.length;i++) map[tiles[i].r][tiles[i].c]=T_WALL;}
+  function tryBranchDir(jc,jr,pH,len,dir){
+    var tiles=[];
+    for(var i=1;i<=len;i++) tiles.push(pH?{c:jc+dir*i,r:jr}:{c:jc,r:jr+dir*i});
+    if(canPlace(tiles)){doPlace(tiles);return true;} return false;
+  }
+  function tryBranch(jc,jr,pH,len){
+    var d=Math.random()<0.5?1:-1;
+    return tryBranchDir(jc,jr,pH,len,d)||tryBranchDir(jc,jr,pH,len,-d);
+  }
+  function getEndpoints(){
+    var eps=[];
+    for(var r=MIN_PAR+1;r<ROWS-MIN_PAR-1;r++)
+      for(var c=MIN_PAR+1;c<COLS-MIN_PAR-1;c++){
+        if(ttype(map[r][c])!==T_WALL) continue;
+        var wL=ttype(map[r][c-1])===T_WALL,wR=ttype(map[r][c+1])===T_WALL;
+        var wU=ttype(map[r-1][c])===T_WALL,wD=ttype(map[r+1][c])===T_WALL;
+        var hN=(wL?1:0)+(wR?1:0),vN=(wU?1:0)+(wD?1:0);
+        if(hN===1&&vN===0) eps.push({c:c,r:r,horiz:true, dir:wL?1:-1});
+        if(vN===1&&hN===0) eps.push({c:c,r:r,horiz:false,dir:wU?1:-1});
+      }
+    for(var k=eps.length-1;k>0;k--){var j=rnd(0,k);var tmp=eps[k];eps[k]=eps[j];eps[j]=tmp;}
+    return eps;
+  }
+  function tryExtendEndpoint(len){
+    var eps=getEndpoints();
+    for(var i=0;i<Math.min(eps.length,30);i++){
+      var ep=eps[i];
+      var tiles=[];
+      for(var step=1;step<=len;step++)
+        tiles.push(ep.horiz?{c:ep.c+ep.dir*step,r:ep.r}:{c:ep.c,r:ep.r+ep.dir*step});
+      if(canPlace(tiles)){doPlace(tiles);return ep.horiz?{c:ep.c,r:ep.r,len:len+1,horiz:true}:{c:ep.c,r:ep.r,len:len+1,horiz:false};}
+    }
+    return null;
+  }
+
+  for(var s=0;s<numSegs;s++){
+    var len=rnd(3,segLenMax),seg=null;
+    if(Math.random()<0.5) seg=tryExtendEndpoint(len);
+    if(!seg){
+      var horiz=Math.random()<0.5;
+      for(var t=0;t<20;t++){
+        if(horiz){
+          var r2=rnd(MIN_PAR+1,ROWS-MIN_PAR-2),c2=rnd(MIN_PAR+1,COLS-len-MIN_PAR-1);
+          if(c2<1||c2+len-1>COLS-2) continue;
+          if(hasParallelH(r2,c2,c2+len-1)) continue;
+          var t2=[];for(var i=0;i<len;i++) t2.push({c:c2+i,r:r2});
+          if(canPlace(t2)){doPlace(t2);seg={c:c2,r:r2,len:len,horiz:true};break;}
+        } else {
+          var c3=rnd(MIN_PAR+1,COLS-MIN_PAR-2),r3=rnd(MIN_PAR+1,ROWS-len-MIN_PAR-1);
+          if(r3<1||r3+len-1>ROWS-2) continue;
+          if(hasParallelV(c3,r3,r3+len-1)) continue;
+          var t3=[];for(var i2=0;i2<len;i2++) t3.push({c:c3,r:r3+i2});
+          if(canPlace(t3)){doPlace(t3);seg={c:c3,r:r3,len:len,horiz:false};break;}
+        }
+      }
+    }
+    if(!seg) continue;
+    var bl=rnd(3,Math.min(segLenMax,10)),perpH=!seg.horiz,roll=Math.random();
+    if(roll<0.35){
+      var ec=seg.horiz?(Math.random()<0.5?seg.c:seg.c+seg.len-1):seg.c;
+      var er=seg.horiz?seg.r:(Math.random()<0.5?seg.r:seg.r+seg.len-1);
+      tryBranch(ec,er,perpH,bl);
+    } else if(roll<0.55){
+      var mc=seg.horiz?seg.c+Math.floor(seg.len/2):seg.c;
+      var mr=seg.horiz?seg.r:seg.r+Math.floor(seg.len/2);
+      tryBranchDir(mc,mr,perpH,bl,1);
+      tryBranchDir(mc,mr,perpH,rnd(3,Math.min(segLenMax,8)),-1);
+    } else if(roll<0.65){
+      var bd=Math.random()<0.5?1:-1;
+      tryBranchDir(seg.c,seg.r,perpH,bl,bd);
+      var ec2=seg.horiz?seg.c+seg.len-1:seg.c;
+      var er2=seg.horiz?seg.r:seg.r+seg.len-1;
+      tryBranchDir(ec2,er2,perpH,rnd(3,Math.min(segLenMax,10)),bd);
+    }
+  }
+}
+
+// ── GENERATOR ─────────────────────────────────────────────────────────────────
+function generateCandidate(COLS,ROWS,numDoors,numLava,numSegs,segLenMax,DOOR_W){
+  var map=[],r,c;
+  for(r=0;r<ROWS;r++) map.push(new Array(COLS).fill(T_EMPTY));
+  for(c=0;c<COLS;c++){map[0][c]=T_WALL;map[ROWS-1][c]=T_WALL;}
+  for(r=0;r<ROWS;r++){map[r][0]=T_WALL;map[r][COLS-1]=T_WALL;}
+
+  // safe è ora un Set di stringhe "c,r" per lookup O(1)
+  var safe=new Set();
+  var doorTiles=[];
+
+  // VASCHE LAVA
+  var lavaOk=0,lavaAtt=0;
+  while(lavaOk<numLava&&lavaAtt<500){
+    lavaAtt++;
+    var lc=rnd(3+LAVA_FLOOR_EXT,COLS-LW-3-LAVA_FLOOR_EXT);
+    var lr=rnd(3,ROWS-LH-3);
+    if(canPlaceLava(map,lc,lr,COLS,ROWS,safe)){
+      placeLava(map,lc,lr);
+      for(var ldr=0;ldr<LH;ldr++)
+        for(var ldc=0;ldc<LW;ldc++) safe.add((lc+ldc)+','+(lr+ldr));
+      var floorRow2=lr+LH-1;
+      for(var fe=1;fe<=LAVA_FLOOR_EXT;fe++){safe.add((lc-fe)+','+floorRow2);safe.add((lc+LW-1+fe)+','+floorRow2);}
+      lavaOk++;
+    }
+  }
+  var lavaPositions=getLavaPositions(map,COLS,ROWS);
+
+  // ── BFS semplice punto→punto, ignora porte (passano come vuoto) ──────────────
+  function bfsSimple(fc,fr,tc2,tr2){
+    if(fc===tc2&&fr===tr2) return [{c:fc,r:fr}];
+    var parent={},queue=[[fc,fr]],head=0;
+    parent[fc+','+fr]=null;
+    var DC=[1,-1,0,0],DR=[0,0,1,-1];
+    while(head<queue.length){
+      var it=queue[head++],cc=it[0],cr=it[1];
+      var t=ttype(map[cr][cc]);
+      if(t===T_WALL||t===T_LAVA) continue;
+      for(var d=0;d<4;d++){
+        var nc=cc+DC[d],nr=cr+DR[d];
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+        var nt=ttype(map[nr][nc]);
+        if(nt===T_WALL||nt===T_LAVA) continue;
+        var nk=nc+','+nr;
+        if(parent[nk]===undefined){
+          parent[nk]=cc+','+cr;
+          if(nc===tc2&&nr===tr2){
+            var path=[],cur=nk;
+            while(cur!==null){var p=cur.split(',');path.push({c:+p[0],r:+p[1]});cur=parent[cur];}
+            return path.reverse();
+          }
+          queue.push([nc,nr]);
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── FLOOD FILL bloccando gruppo porta specifico ──────────────────────────────
+  function floodZone(fc,fr,blockGrp){
+    var vis=new Set(),q=[[fc,fr]],h=0;
+    vis.add(fc+','+fr);
+    var DC=[1,-1,0,0],DR=[0,0,1,-1];
+    while(h<q.length){
+      var it=q[h++],cc=it[0],cr=it[1];
+      for(var d=0;d<4;d++){
+        var nc=cc+DC[d],nr=cr+DR[d];
+        if(nc<0||nc>=COLS||nr<0||nr>=ROWS) continue;
+        var nt=ttype(map[nr][nc]),ng=tgroup(map[nr][nc]);
+        if(nt===T_WALL||nt===T_LAVA) continue;
+        if(nt===T_DOOR&&ng===blockGrp) continue;
+        var nk=nc+','+nr;
+        if(!vis.has(nk)){vis.add(nk);q.push([nc,nr]);}
+      }
+    }
+    return vis;
+  }
+
+  // getCandidates: build una volta, shuffle, riusa — cache invalidata da ogni place
+  function getCandidates(){
+    var cands=[];
+    for(var r2=2;r2<ROWS-3;r2++)
+      for(var c2=2;c2<COLS-3;c2++){
+        var ok=true;
+        for(var dr=-1;dr<=1&&ok;dr++)
+          for(var dc=-1;dc<=1&&ok;dc++)
+            if(ttype(map[r2+dr][c2+dc])!==T_EMPTY) ok=false;
+        if(ok) cands.push({c:c2,r:r2});
+      }
+    for(var k=cands.length-1;k>0;k--){var j=rnd(0,k);var tmp=cands[k];cands[k]=cands[j];cands[j]=tmp;}
+    return cands;
+  }
+  var placedItems=[];
+  var doorTiles=[];
+  function farFromDoors(c,r){
+    for(var di=0;di<doorTiles.length;di++) if(dist(doorTiles[di],{c:c,r:r})<DOOR_ITEM_MIN) return false;
+    return true;
+  }
+  var _candsCache=null;
+  function getCandsC(){if(!_candsCache)_candsCache=getCandidates();return _candsCache;}
+  function invalidateCands(){_candsCache=null;}
+
+  function place3x3(type,group,minD){
+    if(minD===undefined) minD=14;
+    var cands=getCandsC();
+    for(var pi=0;pi<cands.length;pi++){
+      var pos=cands[pi];
+      var tc=false;
+      for(var qi=0;qi<placedItems.length;qi++) if(dist(placedItems[qi],pos)<minD){tc=true;break;}
+      if(tc) continue;
+      if(!farFromDoors(pos.c,pos.r)) continue;
+      var ok=true;
+      for(var dr4=-1;dr4<=1&&ok;dr4++)
+        for(var dc4=-1;dc4<=1&&ok;dc4++)
+          if(ttype(map[pos.r+dr4][pos.c+dc4])!==T_EMPTY) ok=false;
+      if(!ok) continue;
+      for(var dr5=-1;dr5<=1;dr5++)
+        for(var dc5=-1;dc5<=1;dc5++)
+          map[pos.r+dr5][pos.c+dc5]=(group!==undefined)?{type:type,group:group}:type;
+      placedItems.push({c:pos.c,r:pos.r});
+      for(var sr=-3;sr<=3;sr++) for(var sc=-3;sc<=3;sc++) safe.add((pos.c+sc)+','+(pos.r+sr));
+      invalidateCands();
+      return pos;
+    }
+    return null;
+  }
+  function placeWoman(minD){
+    if(minD===undefined) minD=16;
+    var half=Math.floor(WOMAN_FLOOR_W/2);
+    var cands=getCandsC();
+    for(var pi=0;pi<cands.length;pi++){
+      var pos=cands[pi];
+      var tc=false;
+      for(var qi=0;qi<placedItems.length;qi++) if(dist(placedItems[qi],pos)<minD){tc=true;break;}
+      if(tc) continue;
+      if(!farFromDoors(pos.c,pos.r)) continue;
+      var ok=true;
+      for(var dr4=-1;dr4<=1&&ok;dr4++)
+        for(var dc4=-1;dc4<=1&&ok;dc4++)
+          if(ttype(map[pos.r+dr4][pos.c+dc4])!==T_EMPTY) ok=false;
+      if(!ok) continue;
+      var floorRow=pos.r+2;
+      if(floorRow>ROWS-2) continue;
+      var floorOk=true;
+      for(var fc=pos.c-half;fc<=pos.c+half&&floorOk;fc++){
+        if(fc<1||fc>COLS-2){floorOk=false;break;}
+        var ft=ttype(map[floorRow][fc]);
+        if(ft!==T_EMPTY&&ft!==T_WALL) floorOk=false;
+      }
+      if(!floorOk) continue;
+      for(var dr5=-1;dr5<=1;dr5++)
+        for(var dc5=-1;dc5<=1;dc5++)
+          map[pos.r+dr5][pos.c+dc5]=T_WOMAN;
+      for(var fc2=pos.c-half;fc2<=pos.c+half;fc2++)
+        if(ttype(map[floorRow][fc2])===T_EMPTY) map[floorRow][fc2]=T_WALL;
+      placedItems.push({c:pos.c,r:pos.r});
+      for(var sr=-3;sr<=3;sr++) for(var sc=-3;sc<=3;sc++) safe.add((pos.c+sc)+','+(pos.r+sr));
+      for(var fc3=pos.c-half-1;fc3<=pos.c+half+1;fc3++) safe.add(fc3+','+floorRow);
+      invalidateCands();
+      return pos;
+    }
+    return null;
+  }
+
+  // ── 1. PIAZZA ITEM CRITICI (nessuna porta ancora) ────────────────────────────
+  var spawnPos=place3x3(T_SPAWN,undefined,16); if(!spawnPos) return null;
+  var keyPos  =place3x3(T_KEY,  undefined,16); if(!keyPos)   return null;
+  var womanPos=placeWoman(16);                  if(!womanPos) return null;
+
+  // ── 2. PORTE: taglia il percorso spawn→key→donna con linee bordo-a-bordo ─────
+  // OPEN viene piazzato nella zona dello spawn (raggiungibile senza aprire la porta).
+  // Così il player deve: raggiungere OPEN → tornare → attraversare la porta aperta.
+  var dHalf=Math.floor(DOOR_W/2);
+
+  // Piazza OPEN 3x3 in una zona preferita
+  function placeOpenInZone(grp,zone){
+    var cands=getCandsC();
+    var preferred=[],fallback=[];
+    for(var pi=0;pi<cands.length;pi++){
+      var pos=cands[pi];
+      var tc=false;
+      for(var qi=0;qi<placedItems.length;qi++) if(dist(placedItems[qi],pos)<10){tc=true;break;}
+      if(tc) continue;
+      var ok=true;
+      for(var dr=-1;dr<=1&&ok;dr++) for(var dc=-1;dc<=1&&ok;dc++)
+        if(ttype(map[pos.r+dr][pos.c+dc])!==T_EMPTY) ok=false;
+      if(!ok) continue;
+      if(zone.has(pos.c+','+pos.r)) preferred.push(pos);
+      else fallback.push(pos);
+    }
+    var list=preferred.length>0?preferred:fallback;
+    if(list.length===0) return false;
+    var openPos=list[rnd(0,Math.min(list.length-1,14))];
+    for(var dr=-1;dr<=1;dr++) for(var dc=-1;dc<=1;dc++)
+      map[openPos.r+dr][openPos.c+dc]={type:T_OPEN,group:grp};
+    placedItems.push({c:openPos.c,r:openPos.r});
+    for(var sr=-3;sr<=3;sr++) for(var sc=-3;sc<=3;sc++) safe.add((openPos.c+sc)+','+(openPos.r+sr));
+    invalidateCands();
+    return true;
+  }
+
+  for(var d=0;d<numDoors;d++){
+    var grp=GROUPS[d];
+    // Percorso corrente spawn→key→donna (bfsSimple attraversa porte come vuoto)
+    var pathSK=bfsSimple(spawnPos.c,spawnPos.r,keyPos.c,keyPos.r);
+    var pathKW=bfsSimple(keyPos.c,keyPos.r,womanPos.c,womanPos.r);
+    if(!pathSK||!pathKW) return null;
+    var curPath=pathSK.concat(pathKW.slice(1));
+    if(curPath.length<8) return null;
+
+    // Shuffle indici centrali (15%-85%) per trovare taglio valido
+    var idxs=[];
+    var iStart=Math.floor(curPath.length*0.15),iEnd=Math.floor(curPath.length*0.85);
+    for(var ii2=iStart;ii2<iEnd;ii2++) idxs.push(ii2);
+    for(var ki2=idxs.length-1;ki2>0;ki2--){var ji2=rnd(0,ki2);var ti2=idxs[ki2];idxs[ki2]=idxs[ji2];idxs[ji2]=ti2;}
+
+    var doorPlaced=false;
+    for(var ii3=0;ii3<idxs.length&&!doorPlaced;ii3++){
+      var pt=curPath[idxs[ii3]];
+      var pc=pt.c,pr=pt.r;
+      var prevPt=curPath[Math.max(0,idxs[ii3]-1)];
+      var nextPt=curPath[Math.min(curPath.length-1,idxs[ii3]+1)];
+      var ddx=nextPt.c-prevPt.c,ddy=nextPt.r-prevPt.r;
+      var tryHoriz=Math.abs(ddy)>=Math.abs(ddx);
+
+      for(var flip=0;flip<2&&!doorPlaced;flip++){
+        var horiz=(flip===0)?tryHoriz:!tryHoriz;
+        if(horiz){
+          var dS=pc-dHalf,dE=dS+DOOR_W-1;
+          if(dS<2||dE>COLS-3) continue;
+          var rowOk=true;
+          for(var cc5=1;cc5<=COLS-2&&rowOk;cc5++) if(ttype(map[pr][cc5])!==T_EMPTY) rowOk=false;
+          if(!rowOk) continue;
+          for(var cc5=1;cc5<=COLS-2;cc5++){
+            if(cc5>=dS&&cc5<=dE){map[pr][cc5]={type:T_DOOR,group:grp};doorTiles.push({c:cc5,r:pr});}
+            else map[pr][cc5]=T_WALL;
+          }
+          invalidateCands();
+          var spZone=floodZone(spawnPos.c,spawnPos.r,grp);
+          if(!placeOpenInZone(grp,spZone)){
+            for(var cc5=1;cc5<=COLS-2;cc5++){var tt=ttype(map[pr][cc5]);if(tt===T_DOOR||tt===T_WALL)map[pr][cc5]=T_EMPTY;}
+            doorTiles=doorTiles.filter(function(dt){return dt.r!==pr;});
+            invalidateCands();
+          } else {
+            for(var sf2=dS-1;sf2<=dE+1;sf2++) safe.add(sf2+','+pr);
+            for(var dfr3=1;dfr3<=DOOR_FRONT;dfr3++)
+              for(var dfc3=dS-1;dfc3<=dE+1;dfc3++){safe.add(dfc3+','+(pr-dfr3));safe.add(dfc3+','+(pr+dfr3));}
+            doorPlaced=true;
+          }
+        } else {
+          var dRs=pr-dHalf,dRe=dRs+DOOR_W-1;
+          if(dRs<2||dRe>ROWS-3) continue;
+          var colOk=true;
+          for(var rr5=1;rr5<=ROWS-2&&colOk;rr5++) if(ttype(map[rr5][pc])!==T_EMPTY) colOk=false;
+          if(!colOk) continue;
+          for(var rr5=1;rr5<=ROWS-2;rr5++){
+            if(rr5>=dRs&&rr5<=dRe){map[rr5][pc]={type:T_DOOR,group:grp};doorTiles.push({c:pc,r:rr5});}
+            else map[rr5][pc]=T_WALL;
+          }
+          invalidateCands();
+          var spZone2=floodZone(spawnPos.c,spawnPos.r,grp);
+          if(!placeOpenInZone(grp,spZone2)){
+            for(var rr5=1;rr5<=ROWS-2;rr5++){var tt=ttype(map[rr5][pc]);if(tt===T_DOOR||tt===T_WALL)map[rr5][pc]=T_EMPTY;}
+            doorTiles=doorTiles.filter(function(dt){return dt.c!==pc;});
+            invalidateCands();
+          } else {
+            for(var sf3=dRs-1;sf3<=dRe+1;sf3++) safe.add(pc+','+sf3);
+            for(var dfc4=1;dfc4<=DOOR_FRONT;dfc4++)
+              for(var dfr4=dRs-1;dfr4<=dRe+1;dfr4++){safe.add((pc-dfc4)+','+dfr4);safe.add((pc+dfc4)+','+dfr4);}
+            doorPlaced=true;
+          }
+        }
+      }
+    }
+    if(!doorPlaced) return null;
+  }
+
+  var cands2=getCandsC();
+  for(var fi=0;fi<cands2.length;fi++){
+    var fp=cands2[fi];
+    if(Math.abs(fp.c-womanPos.c)>12||Math.abs(fp.r-womanPos.r)>4) continue;
+    if(!farFromDoors(fp.c,fp.r)) continue;
+    var fok=true;
+    for(var fdr=-1;fdr<=1&&fok;fdr++)
+      for(var fdc=-1;fdc<=1&&fok;fdc++)
+        if(ttype(map[fp.r+fdr][fp.c+fdc])!==T_EMPTY) fok=false;
+    if(!fok) continue;
+    for(var fdr2=-1;fdr2<=1;fdr2++)
+      for(var fdc2=-1;fdc2<=1;fdc2++)
+        map[fp.r+fdr2][fp.c+fdc2]=T_FLAG;
+    placedItems.push({c:fp.c,r:fp.r});
+    for(var fsr=-3;fsr<=3;fsr++) for(var fsc2=-3;fsc2<=3;fsc2++) safe.add((fp.c+fsc2)+','+(fp.r+fsr));
+    break;
+  }
+  place3x3(T_BULB,undefined,16); place3x3(T_BULB,undefined,16);
+  place3x3(T_STAR,undefined,12); place3x3(T_STAR,undefined,12);
+  fillWallSegments(map,COLS,ROWS,numSegs,segLenMax,safe);
+  return {map:map,spawnPos:spawnPos,keyPos:keyPos,womanPos:womanPos};
+}
+
+// ── COLORS ────────────────────────────────────────────────────────────────────
+var COLORS={};
+COLORS[T_WALL]='#3a4a5a';COLORS[T_EMPTY]='#0a1018';COLORS[T_LAVA]='#ff4400';
+COLORS[T_WOMAN]='#2a1a2a';COLORS[T_CLOSE]='#ff6b35';COLORS[T_OPEN]='#39ff14';
+COLORS[T_DOOR]='#c17f3a';COLORS[T_FLAG]='#1a1a2a';COLORS[T_BULB]='#1a1a0a';
+COLORS[T_SPAWN]='#0a1a2a';COLORS[T_KEY]='#1a1500';COLORS[T_STAR]='#1a1800';
+
+// ── DRAW ──────────────────────────────────────────────────────────────────────
+var _lastMap=null,_lastPath=null,_lastCOLS=0,_lastROWS=0;
+function redrawIfReady(){
+  if(_lastMap) drawMap(_lastMap,_lastCOLS,_lastROWS,_lastPath);
+}
+function drawMap(map,COLS,ROWS,path){
+  _lastMap=map;_lastPath=path;_lastCOLS=COLS;_lastROWS=ROWS;
+  var showPath=document.getElementById('showPath').checked;
+  var showGrid=document.getElementById('showGrid').checked;
+  var canvas=document.getElementById('mapCanvas');
+  var tW=Math.max(2,Math.floor(canvas.offsetWidth/COLS));
+  var tH=Math.max(2,Math.round(tW*0.85));
+  canvas.width=COLS*tW;canvas.height=ROWS*tH;
+  var ctx=canvas.getContext('2d');
+  ctx.fillStyle='#0a0c0f';ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  for(var r=0;r<ROWS;r++)
+    for(var c=0;c<COLS;c++){
+      ctx.fillStyle=COLORS[ttype(map[r][c])]||'#333';
+      ctx.fillRect(c*tW,r*tH,tW,tH);
+    }
+
+  // Griglia tile vuoti
+  if(showGrid&&tW>=3){
+    ctx.strokeStyle='rgba(255,255,255,0.07)';
+    ctx.lineWidth=0.5;
+    for(var gr=0;gr<ROWS;gr++)
+      for(var gc=0;gc<COLS;gc++){
+        var gt=ttype(map[gr][gc]);
+        if(gt===T_EMPTY){
+          ctx.strokeRect(gc*tW+0.5,gr*tH+0.5,tW-1,tH-1);
+        }
+      }
+  }
+
+  if(showPath&&path&&path.length>1){
+    ctx.beginPath();
+    ctx.strokeStyle='rgba(0,200,255,0.55)';
+    ctx.lineWidth=Math.max(1,tW*0.4);
+    ctx.lineJoin='round';
+    ctx.moveTo((path[0].c+0.5)*tW,(path[0].r+0.5)*tH);
+    for(var pi=1;pi<path.length;pi++)
+      ctx.lineTo((path[pi].c+0.5)*tW,(path[pi].r+0.5)*tH);
+    ctx.stroke();
+
+    var aSize=Math.max(2,tW*1.2);
+    ctx.fillStyle='rgba(0,230,255,0.92)';
+    for(var ai=PATH_ARROW_STEP;ai<path.length-1;ai+=PATH_ARROW_STEP){
+      var p0=path[ai-1],p1=path[ai];
+      var dx=(p1.c-p0.c),dy=(p1.r-p0.r);
+      var ang=Math.atan2(dy*tH,dx*tW);
+      var cx2=(path[ai].c+0.5)*tW, cy2=(path[ai].r+0.5)*tH;
+      ctx.save();
+      ctx.translate(cx2,cy2);
+      ctx.rotate(ang);
+      ctx.beginPath();
+      ctx.moveTo(aSize,0);
+      ctx.lineTo(-aSize,-aSize*0.6);
+      ctx.lineTo(-aSize, aSize*0.6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font=Math.max(10,Math.floor(tH*2.2))+'px serif';
+  for(var er=1;er<ROWS-1;er++)
+    for(var ec=1;ec<COLS-1;ec++){
+      var et=ttype(map[er][ec]),em=EMOJI_MAP[et];
+      if(!em) continue;
+      var isCtr=true;
+      for(var edr=-1;edr<=1&&isCtr;edr++)
+        for(var edc=-1;edc<=1&&isCtr;edc++)
+          if(ttype(map[er+edr][ec+edc])!==et) isCtr=false;
+      if(isCtr) ctx.fillText(em,(ec+0.5)*tW,(er+0.5)*tH);
+    }
+
+  var lfs=Math.max(7,Math.floor(tH*0.95));
+  ctx.font='bold '+lfs+'px monospace';
+  ctx.textBaseline='middle';
+  for(var lr=1;lr<ROWS-1;lr++)
+    for(var lc=1;lc<COLS-1;lc++){
+      var lt=ttype(map[lr][lc]),lg=tgroup(map[lr][lc]);
+      if((lt!==T_OPEN&&lt!==T_CLOSE)||!lg) continue;
+      var isCtr2=true;
+      for(var ldr=-1;ldr<=1&&isCtr2;ldr++)
+        for(var ldc=-1;ldc<=1&&isCtr2;ldc++){
+          var nn=map[lr+ldr][lc+ldc];
+          if(ttype(nn)!==lt||tgroup(nn)!==lg) isCtr2=false;
+        }
+      if(!isCtr2) continue;
+      var label=(lt===T_OPEN?'OPEN ':'CLOSE ')+lg;
+      var cx3=(lc+0.5)*tW,cy3=(lr+0.5)*tH;
+      var tw=ctx.measureText(label).width;
+      ctx.fillStyle='rgba(0,0,0,0.55)';
+      ctx.fillRect(cx3-tw/2-2,cy3-lfs/2-1,tw+4,lfs+2);
+      ctx.fillStyle='#fff';
+      ctx.fillText(label,cx3,cy3);
+    }
+
+  var dfs=Math.max(6,Math.floor(tH*1.1));
+  ctx.font='bold '+dfs+'px monospace';
+  ctx.textBaseline='middle';
+  for(var dr2=0;dr2<ROWS;dr2++)
+    for(var dc2=0;dc2<COLS;dc2++){
+      if(ttype(map[dr2][dc2])!==T_DOOR) continue;
+      var dg=tgroup(map[dr2][dc2]); if(!dg) continue;
+      var cx4=(dc2+0.5)*tW,cy4=(dr2+0.5)*tH;
+      var tw2=ctx.measureText(dg).width;
+      ctx.fillStyle='rgba(0,0,0,0.5)';
+      ctx.fillRect(cx4-tw2/2-1,cy4-dfs/2-1,tw2+2,dfs+2);
+      ctx.fillStyle='#fff';
+      ctx.fillText(dg,cx4,cy4);
+    }
+}
+
+function serializeLevel(map,COLS,ROWS,ts,score,valid,iters){
+  var rows=[];
+  for(var r=0;r<ROWS;r++){
+    var cells=[];
+    for(var c=0;c<COLS;c++){
+      var v=map[r][c];
+      cells.push((v!==null&&typeof v==='object')?'{type:'+v.type+",group:'"+v.group+"'}":String(v));
+    }
+    rows.push('        ['+cells.join(',')+']');
+  }
+  return '/* 1=Muro 2=Lava 3=Donna 6=Porta 7=Bandiera 8=Lampadina 9=Partenza 10=Chiave 12=Stella */\n'+
+         '/* score:'+score.toFixed(1)+' valid:'+valid+'/'+iters+' */\n'+
+         'loadLevelData({\n    tileSize:'+ts+',\n    cols:'+COLS+',\n    rows:'+ROWS+',\n    map:[\n'+
+         rows.join(',\n')+'\n    ]\n});';
+}
+
+function runGenerator(){
+  var ITERS  =+document.getElementById('iterations').value;
+  var COLS   =+document.getElementById('cols').value;
+  var ROWS   =+document.getElementById('rows').value;
+  var N_DOORS=+document.getElementById('doors').value;
+  var N_LAVA =+document.getElementById('lavaPools').value;
+  var N_SEGS =+document.getElementById('density').value;
+  var SEG_LEN=+document.getElementById('segLen').value;
+  var TS     =+document.getElementById('tileSize').value;
+  var DOOR_W =+document.getElementById('doorW').value;
+  var W={kw:+document.getElementById('wKW').value,sk:+document.getElementById('wSK').value,
+         pen:+document.getElementById('wPEN').value,cont:+document.getElementById('wCONT').value};
+
+  document.getElementById('btnRun').disabled=true;
+  document.getElementById('btnCopy').disabled=true;
+  document.getElementById('btnSave').disabled=true;
+  document.getElementById('log').innerHTML='';
+  ['statValid','statTotal','statScore','statTime'].forEach(function(id){document.getElementById(id).textContent='-';});
+  document.getElementById('outputJS').value='';
+  document.getElementById('scoreBadge').textContent='';
+  document.getElementById('progressFill').style.width='0%';
+  bestJS='';
+  ulog('Avvio: '+ITERS+' iter | '+COLS+'x'+ROWS+' | '+N_SEGS+' segm | '+N_DOORS+' porte | '+N_LAVA+' vasche','info');
+
+  var best=null,bestScore=-Infinity,valid=0,idx=0,t0=performance.now();
+  function chunk(){
+    var end=Math.min(idx+100,ITERS);
+    while(idx<end){
+      idx++;
+      var cand=generateCandidate(COLS,ROWS,N_DOORS,N_LAVA,N_SEGS,SEG_LEN,DOOR_W);
+      if(!cand) continue;
+      var map=cand.map,sp=cand.spawnPos,kp=cand.keyPos,wp=cand.womanPos;
+      if(!validate(map,sp.c,sp.r,kp.c,kp.r,wp.c,wp.r,COLS,ROWS)) continue;
+      if(N_DOORS>0&&!validateSwitchesNecessary(map,sp.c,sp.r,COLS,ROWS)) continue;
+      valid++;
+      var s=scoreLevel(map,sp,kp,wp,COLS,ROWS,W);
+      if(s>bestScore){bestScore=s;best=cand;}
+    }
+    document.getElementById('progressFill').style.width=Math.round(idx/ITERS*100)+'%';
+    document.getElementById('statValid').textContent=valid;
+    document.getElementById('statTotal').textContent=idx;
+    if(idx<ITERS){setTimeout(chunk,0);return;}
+    var elapsed=((performance.now()-t0)/1000).toFixed(1);
+    document.getElementById('statScore').textContent=best?bestScore.toFixed(1):'-';
+    document.getElementById('statTime').textContent=elapsed;
+    if(!best){
+      ulog('Nessun livello valido. Prova meno porte/vasche.','err');
+    } else {
+      ulog(valid+'/'+ITERS+' validi | score:'+bestScore.toFixed(1),'ok');
+      ulog('Completato in '+elapsed+'s','ok');
+      var solPath=tracePath(best.map,best.spawnPos.c,best.spawnPos.r,COLS,ROWS);
+      if(solPath) ulog('Percorso soluzione: '+solPath.length+' passi','info');
+      drawMap(best.map,COLS,ROWS,solPath);
+      document.getElementById('scoreBadge').textContent='SCORE:'+bestScore.toFixed(1)+' | VALID:'+valid+'/'+ITERS+(solPath?' | PATH:'+solPath.length:'');
+      bestJS=serializeLevel(best.map,COLS,ROWS,TS,bestScore,valid,ITERS);
+      document.getElementById('outputJS').value=bestJS;
+      document.getElementById('btnCopy').disabled=false;
+      document.getElementById('btnSave').disabled=false;
+    }
+    document.getElementById('btnRun').disabled=false;
+  }
+  setTimeout(chunk,0);
+}
+
+function copyJS(){
+  if(!bestJS) return;
+  navigator.clipboard.writeText(bestJS).then(function(){
+    ulog('JS copiato negli appunti!','ok');
+  }).catch(function(){document.getElementById('outputJS').select();document.execCommand('copy');ulog('JS copiato!','ok');});
+}
+
+function saveJS(){
+  if(!bestJS) return;
+  var blob=new Blob([bestJS],{type:'text/javascript'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download='levelg.js';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  ulog('File levelg.js scaricato!','ok');
+}
+</script>
+</body>
+</html>

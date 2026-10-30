@@ -21,7 +21,7 @@ jobs:
         run: |
           if [ ! -f package.json ]; then npm init -y; fi
           mkdir -p www
-          rsync -av --exclude='www' --exclude='.github' --exclude='.git' --exclude='node_modules' . www/
+          rsync -av --exclude='www' --exclude='.github' --exclude='.git' --exclude='node_modules' --exclude='_archivio' --exclude='tools' --exclude='docs' . www/
 
       - name: Installazione dipendenze e Capacitor
         run: |

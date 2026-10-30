@@ -1,0 +1,17 @@
+Per tetare in locale e lanciare il server
+da dentro la cartella del progetto:
+npm run dev
+
+
+npm run build
+dalla cartella del sito
+e poi uploaddi su GitHub la DIST
+
+
+Per progetti Vanilla es6
+
+# Entra nella cartella del progetto
+cd percorso/della/tua/cartella
+
+# Avvia un server istantaneo
+npx serve

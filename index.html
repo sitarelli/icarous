@@ -2,8 +2,9 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Icarous</title>
+    <meta name="description" content="Icarous – remake del classico MSX Theseus: vola nella grotta, prendi la chiave, salva la ragazza.">
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,19 +12,15 @@
     <meta name="apple-mobile-web-app-title" content="ICAROUS">
     <meta name="theme-color" content="#000000">
 
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" href="favicon.ico" sizes="any">
-    
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    
-    <link rel="icon" type="image/png" sizes="192x192" href="android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="android-chrome-512x512.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Orbitron:wght@400;700;900&family=Poppins:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -33,71 +30,97 @@
 <div id="rotate-message" class="rotate-overlay">
     <div class="rotate-content">
         <div class="rotate-icon">📱</div>
-        <p>Per giocare a schermo intero <br> su IPHONE: <br><br> clicca su: <br><br> ... Condividi <br><br> Altro <br><br> Aggiungi alla schermata Home <br><br> Lancia il gioco da icona</p>
+        <p>Ruota il telefono in orizzontale.<br><br>Per il tutto schermo su iPhone:<br>Condividi → Aggiungi alla schermata Home<br>e lancia il gioco dall'icona.</p>
     </div>
 </div>
 
-<!-- TAP TO START -->
-<div id="tap-to-start" class="tap-overlay">
-    <div class="tap-content">
-        <div class="tap-title">ICAROUS</div>
-        <div class="tap-subtitle">An MSX game Revival</div>
-        <div class="tap-button">TAP TO START</div>
-        <div class="tap-hint">Usa il tasto fullscreen se disponibile</div>
-        <div class="tap-debug" id="debug-info">Caricamento...</div>
+<!-- MENU INIZIALE -->
+<div id="menu-overlay" class="overlay menu-overlay">
+    <div class="glass-panel menu-panel">
+        <div class="menu-title">ICAROUS</div>
+        <div class="menu-subtitle" id="menu-subtitle">An MSX game Revival</div>
+        <div class="campaign-tabs" id="campaign-tabs">
+            <button class="campaign-tab" data-campaign="originale" type="button">ORIGINALE</button>
+            <button class="campaign-tab" data-campaign="vitto" type="button">VITTO LEVELS</button>
+        </div>
+        <div class="menu-hint" id="campaign-desc"></div>
+        <button class="btn btn-primary" id="btn-play" type="button">GIOCA</button>
+        <button class="btn" id="btn-new" type="button">NUOVA PARTITA</button>
+        <button class="btn" id="btn-levels" type="button">SCEGLI LIVELLO</button>
+        <div class="level-grid" id="level-grid"></div>
+        <div class="menu-hint">Frecce / WASD per muoverti · Spazio o W per volare · P per la pausa · joypad supportato</div>
+        <div class="menu-debug" id="debug-info">Caricamento...</div>
     </div>
 </div>
 
-<!-- POWER BAR -->
-<div class="power-container">
-    <div id="power-bar"></div>
-</div>
-
-<!-- GAME OVER OVERLAY -->
-<div id="game-over-overlay">
-    <div class="game-over-box">
-        <div class="game-over-text">GAME OVER</div>
-        <button class="game-over-btn" id="retry-btn">RIPROVA</button>
+<!-- PAUSA -->
+<div id="pause-overlay" class="overlay">
+    <div class="glass-panel small-panel">
+        <div class="panel-title">PAUSA</div>
+        <button class="btn btn-primary" id="btn-resume" type="button">RIPRENDI</button>
+        <button class="btn" id="btn-restart" type="button">RICOMINCIA LIVELLO</button>
+        <button class="btn" id="btn-light" type="button">Luce dinamica: ON</button>
+        <button class="btn btn-ghost" id="btn-pause-menu" type="button">MENU</button>
     </div>
 </div>
 
-<!-- CONTENITORE GIOCO -->
+<!-- GAME OVER -->
+<div id="game-over-overlay" class="overlay">
+    <div class="glass-panel small-panel danger">
+        <div class="panel-title">GAME OVER</div>
+        <button class="btn btn-primary" id="btn-checkpoint" type="button">RIPARTI DAL CHECKPOINT</button>
+        <button class="btn" id="btn-retry" type="button">RICOMINCIA LIVELLO</button>
+        <button class="btn btn-ghost" id="btn-gameover-menu" type="button">MENU</button>
+    </div>
+</div>
+
+<!-- FINALE -->
+<div id="final-overlay" class="overlay">
+    <div class="glass-panel small-panel">
+        <div class="panel-title" id="final-title">HAI FINITO ICAROUS!</div>
+        <p class="final-text">Tutte le ragazze sono libere. Punteggio totale (somma dei tuoi record):</p>
+        <div class="final-score" id="final-score">0</div>
+        <button class="btn btn-primary" id="btn-final-menu" type="button">MENU</button>
+    </div>
+</div>
+
+<!-- CONTENITORE GIOCO (la tela prende tutto lo schermo, l'HUD è vetro sopra) -->
 <div id="game-container">
 
-    <!-- HEADER / HUD -->
-    <div class="compact-header">
-        <div class="title-compact">ICAROUS</div>
-
-        <div id="hud-compact">
-            <!-- ZOOM CONTROLS: Design minimale ed elegante -->
-            <div class="hud-item zoom-area">
-                <button id="btn-zoom-out" class="zoom-btn">−</button>
-                <span class="zoom-icon">🔍</span>
-                <button id="btn-zoom-in" class="zoom-btn">+</button>
-            </div>
-
+    <!-- HUD: tre pillole di vetro -->
+    <div class="hud-bar">
+        <div class="glass-pill hud-left">
+            <div class="title-compact">ICAROUS<span class="title-tag" id="campaign-tag"></span></div>
             <div class="hud-item">
                 <span class="hud-label">LV</span>
                 <span class="hud-value" id="level-display">01</span>
             </div>
+        </div>
 
+        <div class="glass-pill hud-power" aria-label="Energia">
+            <div class="power-track"><div id="power-bar"></div></div>
+        </div>
+
+        <div class="glass-pill hud-right" id="hud-compact">
+            <div class="hud-item timer-chip" id="timer-chip">
+                <span class="hud-icon">⏱</span>
+                <span class="hud-value" id="timer-display">10</span>
+            </div>
             <div class="hud-item">
                 <span class="hud-icon">⭐</span>
                 <span class="hud-value" id="stars-display">0</span>
             </div>
-
-            <div class="hud-item">
-                <span class="flag-indicator"></span>
-            </div>
-
             <div class="hud-item">
                 <span class="hud-icon">💡</span>
                 <span class="hud-value" id="bulbs-display">0</span>
             </div>
-
-            <div class="hud-item">
-                <span class="key-indicator"></span>
+            <div class="hud-item"><span class="flag-indicator"></span></div>
+            <div class="hud-item"><span class="key-indicator"></span></div>
+            <div class="hud-item zoom-area">
+                <button id="btn-zoom-out" class="zoom-btn" type="button" aria-label="Zoom indietro">−</button>
+                <button id="btn-zoom-in" class="zoom-btn" type="button" aria-label="Zoom avanti">+</button>
             </div>
+            <button class="hud-item pause-btn" id="btn-pause" type="button" aria-label="Pausa"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></button>
         </div>
     </div>
 
@@ -106,18 +129,19 @@
         <canvas id="game-canvas"></canvas>
     </div>
 
-<!-- TOUCH CONTROLS -->
-<div id="touch-controls">
-    <div class="controls-left">
-        <div id="joystick-base">
-            <div id="joystick-stick"></div>
+    <!-- TOUCH CONTROLS -->
+    <div id="touch-controls">
+        <div class="controls-left">
+            <div id="joystick-base">
+                <div id="joystick-stick"></div>
+            </div>
         </div>
-    </div>
 
-    <div class="controls-right">
-        <button id="btn-fly" class="touch-btn fly-btn" type="button">
-            <span class="fly-icon">FLY</span>
-        </button>
+        <div class="controls-right">
+            <button id="btn-fly" class="touch-btn fly-btn" type="button">
+                <span class="fly-icon">FLY</span>
+            </button>
+        </div>
     </div>
 </div>
 

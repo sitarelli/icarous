@@ -5,7 +5,7 @@
 // così la velocità del gioco non dipende dalla frequenza dello schermo (60/120 Hz).
 
 import { config, keys, player, gameState, camera, currentMap, items, enemies, lavas, triggers, decorations, lavaParticles, dustParticles, fireworkParticles, colorParticles, featherParticles, deathParticles, cameraShake, lavaAnimTime, fx, isMobile, timerPowerUp } from './config.js';
-import { safePlayAudio, sfx, playSound, stopAllSounds } from './main.js';
+import { safePlayAudio, sfx, playSound, stopAllSounds, playWispSound } from './main.js';
 
 // Tile solido: muro (1) oppure porta chiusa
 export function getTile(px, py) {
@@ -56,11 +56,151 @@ export function respawnPlayer() {
     deathParticles.length = 0;
 }
 
+// ===== FUOCO FATUO (tile 17): spirito di lava che compare a un punto del livello, poi vaga a caso =====
+// Il blocco 17 nella mappa è il punto dove si materializza: dorme finché Theseus non ci arriva vicino,
+// poi compare con un'animazione e vaga a caso; se va contro un muro o una porta chiusa cambia direzione.
+const WISP_SPEED = 0.121;     // tile per frame (gli altri nemici vanno a 0.20)
+const WISP_WAKE_RANGE = 14;   // tile: quanto vicino deve arrivare Theseus per farlo comparire
+export const WISP_APPEAR_TIME = 1.4;
+const WISP_CHASE = 0.022;     // quanto tende verso Theseus (0 = del tutto a caso)
+const WISP_FREE_TIME = 0.6;   // dopo un rimbalzo vaga libero per un attimo prima di tornare a inseguire
+
+// "Mappa delle distanze" da Theseus attraverso le stanze (muri e porte chiuse bloccano), ricalcolata ogni mezzo secondo:
+// il fuoco fatuo segue la strada vera fino a lui, non la linea d'aria (che in un labirinto lo farebbe solo sbattere).
+let wispField = null, wispFieldW = 0, wispFieldTimer = 0;
+function updateWispField(dt) {
+    wispFieldTimer -= dt;
+    if (wispField && wispFieldTimer > 0) return;
+    wispFieldTimer = 0.5;
+    const ts = config.tileSize, W = currentMap[0].length, H = currentMap.length;
+    if (!wispField || wispField.length !== W * H) wispField = new Int32Array(W * H);
+    wispFieldW = W;
+    const solid = new Uint8Array(W * H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) solid[y * W + x] = currentMap[y][x] === 1 ? 1 : 0;
+    triggers.forEach(t => {
+        if (t.type !== 'door' || t.open) return;
+        for (let y = Math.floor(t.y / ts); y < Math.ceil((t.y + t.h) / ts); y++)
+            for (let x = Math.floor(t.x / ts); x < Math.ceil((t.x + t.w) / ts); x++) solid[y * W + x] = 1;
+    });
+    wispField.fill(-1);
+    const sx = Math.floor((player.x + player.w / 2) / ts), sy = Math.floor((player.y + player.h / 2) / ts);
+    if (sx < 0 || sy < 0 || sx >= W || sy >= H) return;
+    const queue = new Int32Array(W * H);
+    let head = 0, tail = 0;
+    wispField[sy * W + sx] = 0;
+    queue[tail++] = sy * W + sx;
+    while (head < tail) {
+        const i = queue[head++], x = i % W, d = wispField[i] + 1;
+        if (x > 0 && !solid[i - 1] && wispField[i - 1] < 0) { wispField[i - 1] = d; queue[tail++] = i - 1; }
+        if (x < W - 1 && !solid[i + 1] && wispField[i + 1] < 0) { wispField[i + 1] = d; queue[tail++] = i + 1; }
+        if (i >= W && !solid[i - W] && wispField[i - W] < 0) { wispField[i - W] = d; queue[tail++] = i - W; }
+        if (i < W * (H - 1) && !solid[i + W] && wispField[i + W] < 0) { wispField[i + W] = d; queue[tail++] = i + W; }
+    }
+}
+
+// Dove puntare: scende la mappa delle distanze per qualche passo e mira a quel punto (null = Theseus irraggiungibile)
+function wispChaseTarget(cx, cy) {
+    if (!wispField) return null;
+    const ts = config.tileSize, W = wispFieldW;
+    let x = Math.floor(cx / ts), y = Math.floor(cy / ts);
+    let i = y * W + x;
+    if (i < 0 || i >= wispField.length || wispField[i] < 0) return null;
+    for (let step = 0; step < 5; step++) {
+        let best = i;
+        for (const n of [i - 1, i + 1, i - W, i + W]) if (n >= 0 && n < wispField.length && wispField[n] >= 0 && wispField[n] < wispField[best]) best = n;
+        if (best === i) break;
+        i = best;
+    }
+    return { x: (i % W + 0.5) * ts, y: (Math.floor(i / W) + 0.5) * ts };
+}   // secondi di animazione (intanto non fa danno)
+
+export function createWisp(x, y, w, h) {
+    const en = { x, y, w, h, vx: 0, vy: 0, type: 'W', homeX: x, homeY: y, seed: Math.random() * 100, trail: [] };
+    putWispToSleep(en, 0);
+    return en;
+}
+
+// Torna a dormire nel suo punto; si risveglia quando Theseus torna vicino (non prima di "delay" secondi)
+function putWispToSleep(en, delay) {
+    en.x = en.homeX;
+    en.y = en.homeY;
+    en.state = 'dormant';
+    en.wait = delay;
+    en.appear = 0;
+    en.angle = Math.random() * Math.PI * 2;
+    en.turn = 0;
+    en.free = 0;
+    en.trail.length = 0;
+}
+
+// Il corpo del fuoco fatuo a (x, y) tocca un muro o una porta chiusa? (controlla bordi e centro dei lati)
+function wispHits(en, x, y) {
+    const r = x + en.w - 1, b = y + en.h - 1, mx = x + en.w / 2, my = y + en.h / 2;
+    return getTile(x, y) || getTile(r, y) || getTile(x, b) || getTile(r, b) ||
+        getTile(mx, y) || getTile(mx, b) || getTile(x, my) || getTile(r, my);
+}
+
+function steerTo(en, angle, k) {
+    const diff = Math.atan2(Math.sin(angle - en.angle), Math.cos(angle - en.angle));
+    en.angle += diff * k;
+}
+
+function updateWisp(en, dt, dm) {
+    const ts = config.tileSize;
+    const cx = en.x + en.w / 2, cy = en.y + en.h / 2;
+    const px = player.x + player.w / 2, py = player.y + player.h / 2;
+    if (en.state === 'dormant') {
+        if (en.wait > 0) { en.wait -= dt; return; }
+        if (Math.hypot(px - cx, py - cy) < ts * WISP_WAKE_RANGE) {
+            en.state = 'appearing';
+            en.appear = 0;
+            addCameraShake(5);
+            createColorParticles(cx, cy, 16, 'hit');
+            try { playWispSound(); } catch (e) {}
+        }
+        return;
+    }
+    if (en.state === 'appearing') {
+        // si materializza sul posto: braci che convergono, anello di fuoco, poi si gonfia
+        en.appear += dt / WISP_APPEAR_TIME;
+        if (en.appear >= 1) { en.appear = 1; en.state = 'active'; }
+        return;
+    }
+    const speed = WISP_SPEED * ts;
+    // vagare: la curva cambia piano piano, a caso
+    en.turn = Math.max(-0.045, Math.min(0.045, en.turn + (Math.random() - 0.5) * 0.02 * dm));
+    en.angle += en.turn * dm;
+    // tendenza verso Theseus, ovunque sia: va a caso ma "scivola" sempre dalla sua parte, seguendo la strada vera
+    if (en.free > 0) en.free -= dt;
+    else {
+        const target = wispChaseTarget(cx, cy) || { x: px, y: py };
+        steerTo(en, Math.atan2(target.y - cy, target.x - cx), WISP_CHASE * dm);
+    }
+    en.vx = Math.cos(en.angle) * speed;
+    en.vy = Math.sin(en.angle) * speed;
+    // muri e porte chiuse: si muove un asse alla volta e, se urta, rimbalza su quell'asse
+    const nx = en.x + en.vx * dm;
+    if (wispHits(en, nx, en.y)) { en.angle = Math.PI - en.angle; en.turn = -en.turn; en.free = WISP_FREE_TIME; }
+    else en.x = nx;
+    const ny = en.y + en.vy * dm;
+    if (wispHits(en, en.x, ny)) { en.angle = -en.angle; en.turn = -en.turn; en.free = WISP_FREE_TIME; }
+    else en.y = ny;
+    // scia: le ultime posizioni, per disegnare la coda
+    en.trailTimer = (en.trailTimer || 0) + dm;
+    if (en.trailTimer >= 3) {
+        en.trailTimer = 0;
+        en.trail.unshift({ x: cx, y: cy });
+        if (en.trail.length > 6) en.trail.pop();
+    }
+}
+
 // Riparte dall'ultima bandiera toccata, conservando chiave, porte e oggetti presi
 export function respawnAtCheckpoint() {
     const cp = gameState.checkpoint;
     if (!cp) return false;
     respawnPlayer();
+    // il fuoco fatuo non deve trovarsi addosso a chi riparte: torna a dormire nel suo punto e ricompare più tardi
+    enemies.forEach(en => { if (en.type === 'W') putWispToSleep(en, 3); });
     player.x = cp.x;
     player.y = cp.y;
     player.damageCooldown = 2.0;   // un attimo di invulnerabilità alla ripartenza
@@ -696,7 +836,11 @@ export function update(dt, hooks) {
 
     enemies.forEach(en => {
         // === PAC-MAN: nemici congelati durante il power-up timer ===
-        if (!timerPowerUp.active) {
+        if (en.type === 'W') {
+            if (en.state === 'active') updateWispField(dt);
+            if (!timerPowerUp.active) updateWisp(en, dt, dm);
+            if (en.state !== 'active') return;   // addormentato o mentre compare: niente collisione
+        } else if (!timerPowerUp.active) {
             en.x += en.vx * dm;
             en.y += en.vy * dm;
 

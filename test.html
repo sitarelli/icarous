@@ -314,7 +314,7 @@ function validate(text) {
 
     const walls = map.flat().filter(c => T(c) === 1).length / (rows * cols);
     add(walls > 0.2 ? 'warn' : 'ok', `Densità muri ${(walls * 100).toFixed(1)}%${walls > 0.2 ? ' (alta: stanze troppo piene?)' : ''}`);
-    add('ok', `Ricariche: ${count(8)} lampadine, ${count(12)} stelle, ${count(16)} timer · Nemici: ${count(11) + count(13) + count(14) + count(15)}`);
+    add('ok', `Ricariche: ${count(8)} lampadine, ${count(12)} stelle, ${count(16)} timer · Nemici: ${count(11) + count(13) + count(14) + count(15)} + ${count(17)} fuoco fatuo`);
 
     $('report').innerHTML = `<ul>${out.join('')}</ul>`;
 }

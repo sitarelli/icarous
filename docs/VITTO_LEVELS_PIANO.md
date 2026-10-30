@@ -57,6 +57,9 @@ Gli sfondi sono assegnati in sequenza: Vitto può cambiarli dopo averli visti in
 - Ogni scheda indica l'**ordine porte atteso** nel report del validatore: se ne esce uno più corto, c'è una
   scorciatoia che salta il rebus e il livello va corretto.
 - Ricariche: poche. Riferimento: una ogni 2–3 stanze.
+- **Fuoco fatuo** (tile 17, `WISP`, negli schemi `FF`): da 03 in poi c'è sempre, uno per livello, in aggiunta ai nemici
+  della scheda. Compare con animazione e risata quando Theseus si avvicina, poi vaga e rimbalza sui muri
+  (vedi `docs/COME_CREARE_UN_LIVELLO.md`).
 
 ---
 

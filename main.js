@@ -4,7 +4,7 @@
 
 import { config, gameState, player, keys, fx, timerPowerUp, CAMPAIGNS, isLab, labSource, settings, setCurrentLevelNumber, setGameRunning, setCurrentMap, setItems, setEnemies, setTriggers, setDecorations, setLavas, clearParticles, currentLevelNumber, gameRunning, isMobile } from './config.js';
 import { initInput, pollGamepad, requestFullscreen, setFullscreenActivated } from './input.js';
-import { update, respawnPlayer, respawnAtCheckpoint, updateCamera, addFloatText, playerDie } from './player.js';
+import { update, respawnPlayer, respawnAtCheckpoint, updateCamera, addFloatText, playerDie, createWisp } from './player.js';
 import { initRenderer, resizeRenderer, draw, updateHUD, resetHUDCache, setBackgroundForLevel, prepareLevel } from './renderer.js';
 import { getUnlocked, getBest, unlockLevel, recordResult, totalBestScore, saveSettings, resetProgress, getCampaign, setCampaign } from './save.js';
 
@@ -73,7 +73,6 @@ const imagesToLoad = [
     { name: 'enemyS', src: 'png/enemys.png' },
     { name: 'enemyX', src: 'png/enemyx.png' },
     { name: 'bulb', src: 'png/bulb.png' },
-    { name: 'star', src: 'png/star.png' },
     { name: 'flag', src: 'png/flag.png' },
     { name: 'lava', src: 'png/lava.png' },
     { name: 'key', src: 'png/key.png' },
@@ -174,6 +173,67 @@ export function playSound(type) {
     if (type === 'open') { osc.type = 'triangle'; osc.frequency.setValueAtTime(400, now); osc.frequency.linearRampToValueAtTime(800, now + 0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.start(); osc.stop(now + 0.3); }
     if (type === 'close') { osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(400, now + 0.3); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.start(); osc.stop(now + 0.3); }
     if (type === 'win') { osc.frequency.setValueAtTime(523, now); osc.frequency.setValueAtTime(659, now + 0.1); osc.frequency.setValueAtTime(784, now + 0.2); gain.gain.setValueAtTime(0.15, now); osc.start(); osc.stop(now + 0.4); }
+}
+
+// Comparsa del fuoco fatuo: lamento da fantasma + risata malefica, sintetizzati (nessun file audio),
+// con un'eco da caverna. Dura circa 2,5 secondi.
+export function playWispSound() {
+    const ac = getOrCreateAudioContext();
+    if (ac.state === 'suspended') ac.resume();
+    const now = ac.currentTime;
+    const master = ac.createGain();
+    master.gain.value = 0.32;
+    // eco: ritardo con ritorno
+    const echo = ac.createDelay();
+    echo.delayTime.value = 0.23;
+    const feedback = ac.createGain();
+    feedback.gain.value = 0.38;
+    master.connect(ac.destination);
+    master.connect(echo); echo.connect(feedback); feedback.connect(echo); echo.connect(ac.destination);
+
+    // 1) lamento "uuuuoooh": due seni leggermente stonati, vibrato, sale e poi crolla
+    const wail = ac.createGain();
+    wail.gain.setValueAtTime(0.0001, now);
+    wail.gain.exponentialRampToValueAtTime(0.5, now + 0.35);
+    wail.gain.setValueAtTime(0.5, now + 0.9);
+    wail.gain.exponentialRampToValueAtTime(0.0001, now + 1.5);
+    const lp = ac.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 1400;
+    wail.connect(lp); lp.connect(master);
+    const lfo = ac.createOscillator(), lfoGain = ac.createGain();
+    lfo.frequency.value = 6.5; lfoGain.gain.value = 18;
+    lfo.connect(lfoGain);
+    [0, 7].forEach(detune => {
+        const o = ac.createOscillator();
+        o.type = 'sine';
+        o.detune.value = detune * 10;
+        o.frequency.setValueAtTime(230, now);
+        o.frequency.exponentialRampToValueAtTime(540, now + 0.6);
+        o.frequency.exponentialRampToValueAtTime(170, now + 1.5);
+        lfoGain.connect(o.frequency);
+        o.connect(wail);
+        o.start(now); o.stop(now + 1.55);
+    });
+    lfo.start(now); lfo.stop(now + 1.55);
+
+    // 2) risata "ah-ah-ah-ah-ah": voce a dente di sega filtrata sulla vocale "a", a scatti, che scende
+    const voice = ac.createOscillator();
+    voice.type = 'sawtooth';
+    const formant = ac.createBiquadFilter();
+    formant.type = 'bandpass'; formant.frequency.value = 750; formant.Q.value = 4;
+    const laugh = ac.createGain();
+    laugh.gain.value = 0.0001;
+    voice.connect(formant); formant.connect(laugh); laugh.connect(master);
+    const t0 = now + 1.05;
+    for (let i = 0; i < 5; i++) {
+        const t = t0 + i * 0.2;
+        voice.frequency.setValueAtTime(185 - i * 14, t);
+        voice.frequency.exponentialRampToValueAtTime(150 - i * 12, t + 0.14);
+        laugh.gain.setValueAtTime(0.0001, t);
+        laugh.gain.exponentialRampToValueAtTime(0.9 - i * 0.12, t + 0.03);
+        laugh.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+    }
+    voice.start(t0); voice.stop(t0 + 1.1);
 }
 
 const _oneShotThrottle = new WeakSet();
@@ -346,6 +406,7 @@ function initGame(levelData) {
             else if (type === 14) tempEnemies.push({ x: pxX, y: pxY, w: pxW, h: pxH, vx: 0, vy: 0, type: 'S' });
             else if (type === 15) tempEnemies.push({ x: pxX, y: pxY, w: pxW, h: pxH, vx: config.enemySpeedMultiplier * config.tileSize, vy: 0, type: 'X' });
             else if (type === 16) tempItems.push({ x: pxX, y: pxY, w: pxW, h: pxH, type: 'timer', taken: false });
+            else if (type === 17) tempEnemies.push(createWisp(pxX, pxY, pxW, pxH));
             for (let r = y; r < y + h; r++) for (let c = x; c < x + w; c++) currentMap[r][c] = 0;
         }
     }

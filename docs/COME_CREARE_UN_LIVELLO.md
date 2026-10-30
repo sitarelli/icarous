@@ -31,6 +31,25 @@
 9. Solo quando Vitto approva: `python3 tools/livelli/promuovi.py vitto-NN-<nome>.js NN`
    (copia in `levels/vitto/levelNN.js` e aggiorna `CAMPAIGNS` in `config.js`).
 
+## I nemici a disposizione
+| Tile | Costante | Nemico | Comportamento |
+|---|---|---|---|
+| 11 | `ENH` | H | avanti e indietro in orizzontale, rimbalza sui muri |
+| 15 | `ENX` | X | come H, sprite diverso |
+| 13 | `ENV` | V | su e giù in verticale, rimbalza su pavimento e soffitto |
+| 14 | `ENS` | S | fermo, fa male solo se lo tocchi |
+| 17 | `WISP` | **Fuoco fatuo** | spirito di lava luminoso: dorme invisibile sul suo blocco, **compare con animazione e risata** quando Theseus arriva entro 14 tile, poi **vaga a caso** e **rimbalza su muri e porte chiuse** (non li attraversa). **Tende sempre verso Theseus** seguendo la strada vera attraverso varchi e porte aperte (insegue "a zig-zag", non in linea d'aria). Se Theseus è dietro porte chiuse, punta in linea d'aria e sbatte. Si congela col timer. |
+
+Tutti fanno lo stesso danno al contatto (−0,25 di energia, poi 2 s di invulnerabilità).
+
+## Regola fissa (da Vitto Levels 03 in poi)
+- **Ogni livello ha UN fuoco fatuo** (`WISP`, blocco 2×2), oltre ai nemici della scheda: Vitto l'ha voluto come
+  presenza costante della campagna. Il blocco è il punto dove **si materializza**: mettilo dove vuoi il colpo di scena
+  (di solito a metà livello, vicino al checkpoint), ad almeno 15 tile dalla partenza e in un punto che non si "sfiora"
+  prima del momento voluto. Siccome **rimbalza sui muri**, resta nella zona collegata da varchi aperti a dove compare:
+  mettilo in una stanza con varchi verso il percorso, non in una stanza chiusa da porte (altrimenti resta lì dentro).
+  Lascia attorno al blocco almeno 3 tile liberi. Il validatore segnala ATTENZIONE se manca.
+
 ## Errori tipici da evitare (già successi)
 - Nemico orizzontale alla stessa altezza di una porta: quando la porta si apre scappa nelle altre stanze
   (il validatore lo segnala come ATTENZIONE).

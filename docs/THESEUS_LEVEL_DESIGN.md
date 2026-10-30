@@ -64,6 +64,7 @@ loadLevelData({
 | `14` | Nemico **S** | `enemies{type:'S'}` | **Statico** (fermo), danno solo al contatto. |
 | `15` | Nemico **X** | `enemies{type:'X'}` | Si muove **orizzontalmente** (sprite diverso), rimbalza sui muri. |
 | `16` | Timer | `items{timer}` | Ricarica **+0.1** power. |
+| `17` | Nemico **W** (Fuoco fatuo) | `enemies{type:'W'}` | Spirito di lava luminoso (rosso/arancio). Dorme invisibile sul blocco 17 finché Theseus non arriva **entro 14 tile**, poi **si materializza con un'animazione e una risata malefica** (1,4 s, intanto non fa danno) e **vaga a caso**: contro muri e porte chiuse **rimbalza e cambia direzione** (non li attraversa). **Tende verso Theseus** ovunque sia: va a caso ma scivola sempre dalla sua parte, seguendo la **strada vera** attraverso varchi e porte aperte (mappa delle distanze ricalcolata ogni 0,5 s), non la linea d'aria; dopo ogni rimbalzo vaga libero 0,6 s. Fa luce da solo, si congela col timer; ripartendo dal checkpoint torna a dormire sul suo punto. |
 
 > Nota: la Donna `3` è una *decorazione* (non blocca il movimento). I nemici e
 > gli oggetti **non sono solidi**: solo `1` e i **portoni chiusi** fermano il player.

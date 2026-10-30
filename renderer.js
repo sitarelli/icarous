@@ -300,22 +300,20 @@ function drawWalls() {
         }
     }
 
-    // 3) bordi: luce sopra, ombra sotto e ai lati (disegnati in blocco, costano poco)
-    const hl = Math.max(1, tz * 0.12), dk = Math.max(1, tz * 0.16), sd = Math.max(1, tz * 0.1);
-    const top = new Path2D(), bottom = new Path2D(), sides = new Path2D();
+    // 3) bordi: ombra sotto e ai lati (disegnati in blocco, costano poco).
+    //    Niente striscia chiara sopra: Theseus deve poggiare sui mattoni, non su una linea disegnata.
+    const dk = Math.max(1, tz * 0.16), sd = Math.max(1, tz * 0.1);
+    const bottom = new Path2D(), sides = new Path2D();
     for (let y = startY; y < endY; y++) {
         for (let x = startX; x < endX; x++) {
             const e = wallEdges[y * cols + x];
             if (!e || (e & SHADOW)) continue;
             const sx = x * tz - camera.x, sy = y * tz - camera.y;
-            if (e & EDGE_UP) top.rect(sx, sy, tz, hl);
             if (e & EDGE_DOWN) bottom.rect(sx, sy + tz - dk, tz, dk);
             if (e & EDGE_LEFT) sides.rect(sx, sy, sd, tz);
             if (e & EDGE_RIGHT) sides.rect(sx + tz - sd, sy, sd, tz);
         }
     }
-    ctx.fillStyle = 'rgba(255, 236, 200, 0.30)';
-    ctx.fill(top);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.40)';
     ctx.fill(bottom);
     ctx.fillStyle = 'rgba(0, 0, 0, 0.20)';
@@ -675,19 +673,96 @@ function drawGlowingTrigger(x, y, w, h, color, text, pulseOffset = 0) {
     ctx.restore();
 }
 
+// Stella disegnata a mano (niente png): punte arrotondate, sfumatura gialla, riflesso lucido e una faccina.
+// Si disegna UNA volta su una tela da 192 px; a ogni frame si copia soltanto (costa come un'immagine).
+let starSprite = null;
+function buildStarSprite() {
+    const S = 192, c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    const cx = S / 2, cy = S / 2 + 4, R = S * 0.4;
+    starPath(g, cx, cy, R);
+    // contorno arancio spesso con giunzioni rotonde: arrotonda le punte
+    g.lineJoin = 'round';
+    g.lineWidth = S * 0.075;
+    g.strokeStyle = '#ef8a0c';
+    g.stroke();
+    const fill = g.createLinearGradient(0, cy - R, 0, cy + R);
+    fill.addColorStop(0, '#fff6b0');
+    fill.addColorStop(0.45, '#ffd83a');
+    fill.addColorStop(1, '#ffa61a');
+    g.fillStyle = fill;
+    g.fill();
+    // riflesso lucido in alto a sinistra (dentro la stella)
+    g.save();
+    starPath(g, cx, cy, R);
+    g.clip();
+    g.globalAlpha = 0.55;
+    g.fillStyle = '#ffffff';
+    g.beginPath();
+    g.ellipse(cx - R * 0.28, cy - R * 0.42, R * 0.32, R * 0.16, -0.5, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+    // faccina: occhi con luccichio, guance rosa, sorriso
+    [-1, 1].forEach(s => {
+        const ex = cx + s * R * 0.2, ey = cy + R * 0.02;
+        g.fillStyle = '#5a2a00';
+        g.beginPath();
+        g.ellipse(ex, ey, R * 0.07, R * 0.11, 0, 0, Math.PI * 2);
+        g.fill();
+        g.fillStyle = '#ffffff';
+        g.beginPath();
+        g.arc(ex - R * 0.025, ey - R * 0.045, R * 0.03, 0, Math.PI * 2);
+        g.fill();
+        g.globalAlpha = 0.45;
+        g.fillStyle = '#ff7a6a';
+        g.beginPath();
+        g.ellipse(cx + s * R * 0.36, cy + R * 0.17, R * 0.08, R * 0.05, 0, 0, Math.PI * 2);
+        g.fill();
+        g.globalAlpha = 1;
+    });
+    g.strokeStyle = '#5a2a00';
+    g.lineWidth = S * 0.018;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.arc(cx, cy + R * 0.14, R * 0.09, 0.15 * Math.PI, 0.85 * Math.PI);
+    g.stroke();
+    return c;
+}
+
 function drawStarGlow(item) {
-    const img = sprites.star;
-    if (!img || !img.complete) return;
-    const pulse = Math.sin(Date.now() * 0.005) * 0.3 + 0.7;
+    if (!starSprite) starSprite = buildStarSprite();
     const x = toScreenX(item.x), y = toScreenY(item.y), w = item.w * config.zoom, h = item.h * config.zoom;
     if (x + w * 2 < 0 || y + h * 2 < 0 || x - w > config.viewportWidth || y - h > config.viewportHeight) return;
+    // ogni stella ha il suo ritmo, così non si muovono tutte insieme
+    const t = Date.now() * 0.001 + item.x * 0.013 + item.y * 0.007;
+    const pulse = 0.75 + Math.sin(t * 3) * 0.25;
+    const cx = x + w / 2, cy = y + h / 2 + Math.sin(t * 2.2) * h * 0.06;   // galleggia piano
     ctx.save();
+    // alone luminescente che respira
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.6 * pulse;
-    ctx.drawImage(glowSprite('#ffff00'), x - w * 0.6, y - h * 0.6, w * 2.2, h * 2.2);
+    ctx.globalAlpha = 0.45 + 0.35 * pulse;
+    const g = w * (2.6 + 0.3 * pulse);
+    ctx.drawImage(glowSprite('#ffc21a'), cx - g / 2, cy - g / 2, g, g);
+    // due scintille a croce che si accendono a turno
+    ctx.fillStyle = '#fffbe0';
+    for (let i = 0; i < 2; i++) {
+        const tw = Math.max(0, Math.sin(t * 2.6 + i * Math.PI));
+        if (tw < 0.05) continue;
+        const a = i * 2.4 + 0.6;
+        const sx = cx + Math.cos(a) * w * 0.75, sy = cy + Math.sin(a) * h * 0.7;
+        const len = w * 0.16 * tw, th = Math.max(1, w * 0.03);
+        ctx.globalAlpha = tw;
+        ctx.fillRect(sx - len, sy - th / 2, len * 2, th);
+        ctx.fillRect(sx - th / 2, sy - len, th, len * 2);
+    }
+    // la stella: leggera oscillazione e "respiro"
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = pulse;
-    ctx.drawImage(img, x, y, w, h);
+    ctx.globalAlpha = 1;
+    const sc = 1.15 * (1 + 0.04 * Math.sin(t * 3));
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.sin(t * 1.6) * 0.12);
+    ctx.drawImage(starSprite, -w * sc / 2, -h * sc / 2, w * sc, h * sc);
     ctx.restore();
 }
 
@@ -702,6 +777,7 @@ function drawEnemies() {
         else if (en.type === 'V') sprite = sprites.enemyV;
         else if (en.type === 'S') sprite = sprites.enemyS;
         else if (en.type === 'X') { sprite = sprites.enemyX; flip = en.vx > 0; }
+        else if (en.type === 'W') return;   // disegnato sopra il buio da drawWisps()
         if (!sprite || !sprite.complete) return;
         if (frozen) {
             const wob = Math.sin(Date.now() * 0.02 + en.x) * config.zoom * 0.6;
@@ -711,6 +787,110 @@ function drawEnemies() {
             drawImg(sprite, en.x, en.y, en.w / config.tileSize, en.h / config.tileSize, flip);
         }
     });
+}
+
+// Fuoco fatuo: niente sprite, è disegnato a mano (alone, coda, corpo, occhi che guardano dove va)
+function drawWisp(en, frozen, blinkWhite) {
+    if (en.state === 'dormant') return;
+    const z = config.zoom;
+    const cx = toScreenX(en.x + en.w / 2), cy = toScreenY(en.y + en.h / 2);
+    const R = en.w * z * 0.55;
+    if (cx < -R * 8 || cy < -R * 8 || cx > config.viewportWidth + R * 8 || cy > config.viewportHeight + R * 8) return;
+    const t = Date.now() * 0.001 + en.seed;
+    // colori della lava (ghiaccio quando è congelato dal timer)
+    const halo = frozen ? (blinkWhite ? '#ffffff' : '#bfeaff') : '#ff4a10';
+    const body = frozen ? '#dff4ff' : '#ff7a2a';
+    const core = frozen ? '#ffffff' : '#ffd36a';
+    const pulse = 0.8 + Math.sin(t * 4) * 0.2;
+    // comparsa: braci che convergono e anello di fuoco, poi il corpo si gonfia con un piccolo rimbalzo
+    const k = en.state === 'appearing' ? en.appear : 1;
+    if (k < 1) drawWispSummon(cx, cy, R, k, t);
+    const grow = Math.max(0, (k - 0.45) / 0.55);
+    if (grow <= 0) return;
+    const r = R * (1 + 0.25 * Math.sin(grow * Math.PI)) * grow;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    // alone grande e morbido + alone stretto e intenso, che pulsano
+    const g1 = r * 8 * (0.92 + 0.08 * pulse), g2 = r * 3.6;
+    ctx.globalAlpha = 0.75 * pulse;
+    ctx.drawImage(glowSprite(halo), cx - g1 / 2, cy - g1 / 2, g1, g1);
+    ctx.globalAlpha = 1;
+    ctx.drawImage(glowSprite(halo), cx - g2 / 2, cy - g2 / 2, g2, g2);
+    // coda a cometa
+    en.trail.forEach((p, i) => {
+        const k = 1 - (i + 1) / (en.trail.length + 1);
+        const tr = r * (0.45 + 0.6 * k) * 2.4;
+        ctx.globalAlpha = 0.8 * k;
+        ctx.drawImage(glowSprite(halo), toScreenX(p.x) - tr / 2, toScreenY(p.y) - tr / 2, tr, tr);
+    });
+    // due scintille che gli girano attorno
+    ctx.fillStyle = '#ffe27a';
+    for (let i = 0; i < 2; i++) {
+        const a = t * 3 + i * Math.PI;
+        ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 9 + i);
+        const sr = Math.max(1, r * 0.11);
+        ctx.fillRect(cx + Math.cos(a) * r * 1.6 - sr, cy + Math.sin(a) * r * 0.9 - sr, sr * 2, sr * 2);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // corpo: un po' ondeggiante
+    const wob = Math.sin(t * 6) * r * 0.06;
+    ctx.globalAlpha = 0.95;
+    ctx.fillStyle = body;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, r + wob, r - wob, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = core;
+    ctx.globalAlpha = 0.6 + 0.3 * pulse;   // cuore incandescente che pulsa
+    ctx.beginPath();
+    ctx.ellipse(cx - r * 0.2, cy - r * 0.25, r * 0.5, r * 0.38, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // occhi
+    ctx.globalAlpha = 1;
+    const look = Math.atan2(en.vy, en.vx);
+    const ex = Math.cos(look) * r * 0.18, ey = Math.sin(look) * r * 0.18;
+    [-1, 1].forEach(s => {
+        const x = cx + s * r * 0.34 + ex, y = cy - r * 0.05 + ey;
+        ctx.fillStyle = '#3a0800';
+        ctx.beginPath();
+        ctx.ellipse(x, y, r * 0.17, r * 0.24, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(x - r * 0.05, y - r * 0.08, r * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.restore();
+}
+
+// Evocazione: 10 braci che spiraleggiano verso il centro e un anello di fuoco che si stringe
+function drawWispSummon(cx, cy, R, k, t) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const fade = Math.min(1, k * 4) * Math.min(1, (1 - k) * 5);
+    const g = R * (3 + 6 * k);
+    ctx.globalAlpha = 0.8 * fade;
+    ctx.drawImage(glowSprite('#ff4a10'), cx - g / 2, cy - g / 2, g, g);
+    for (let i = 0; i < 10; i++) {
+        const a = i * Math.PI / 5 + k * 5 + t;
+        const d = R * 7 * (1 - k);
+        const s = Math.max(1.5, R * (0.12 + 0.12 * k));
+        ctx.globalAlpha = fade;
+        ctx.fillStyle = i % 2 ? '#ffd36a' : '#ff8a1e';
+        ctx.fillRect(cx + Math.cos(a) * d - s, cy + Math.sin(a) * d - s, s * 2, s * 2);
+    }
+    ctx.globalAlpha = 0.9 * fade;
+    ctx.strokeStyle = '#ffb347';
+    ctx.lineWidth = Math.max(2, R * 0.18);
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * (4.5 * (1 - k) + 0.6), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawWisps() {
+    const frozen = timerPowerUp.active;
+    const blinkWhite = frozen && timerPowerUp.timeLeft < 3 && Math.floor(timerPowerUp.timeLeft * 5) % 2 === 0;
+    enemies.forEach(en => { if (en.type === 'W') drawWisp(en, frozen, blinkWhite); });
 }
 
 // Anello del conto alla rovescia attorno a Theseus durante il power-up timer
@@ -794,8 +974,10 @@ function drawLighting() {
         if (inView(x, y, tz * 4)) lightHole(x, y, tz * 2.6, 0.55);
     });
     enemies.forEach(en => {
+        if (en.state === 'dormant') return;
         const x = toScreenX(en.x + en.w / 2), y = toScreenY(en.y + en.h / 2);
-        if (inView(x, y, tz * 3)) lightHole(x, y, tz * 2, 0.35);
+        const wisp = en.type === 'W';   // il fuoco fatuo fa luce da solo
+        if (inView(x, y, tz * 5)) lightHole(x, y, tz * (wisp ? 4.5 : 2), wisp ? 0.8 : 0.35);
     });
 
     lctx.globalAlpha = 1;
@@ -869,10 +1051,12 @@ function drawRadar() {
     // nemici
     ctx.fillStyle = timerPowerUp.active ? '#bfeaff' : '#ff4d5e';
     enemies.forEach(en => {
+        if (en.state === 'dormant') return;
         const [x, y] = toRadar(en.x + en.w / 2, en.y + en.h / 2);
         ctx.beginPath();
-        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.arc(x, y, en.type === 'W' ? 3.4 : 2.2, 0, Math.PI * 2);
+        if (en.type === 'W' && !timerPowerUp.active) { ctx.fillStyle = '#ffb347'; ctx.fill(); ctx.fillStyle = '#ff4d5e'; }
+        else ctx.fill();
     });
     // checkpoint
     const flag = items.find(i => i.type === 'flag');
@@ -1235,6 +1419,7 @@ export function draw(gameRunning) {
     drawFeathers();
     drawColorParticles();
     drawLighting();
+    drawWisps();   // il fuoco fatuo è una luce: sta sopra il buio
     drawTimerRing();
     if (gameState.won) drawFireworkParticles();
     drawFloatTexts();

@@ -5,6 +5,7 @@ Griglia 3×3 di stanze (R = riga, C = colonna: R21 = in basso al centro, la part
 La chiave è nella stanza centrale R11, proprio sopra la partenza, ma R11 ha un solo ingresso (porta B, a destra):
 per arrivarci si fa tutto l'anello in senso orario R21 -> R20 -> R10 -> R00 -> R01 -> R02 -> R12 -> R11.
 La ragazza è in un'alcova chiusa dalla porta C dentro R01: la si vede passando, ci si entra solo alla fine.
+Tre vasche di lava sul percorso (R20, R01, R11) e il fuoco fatuo, che compare in R02 al checkpoint.
 """
 from icarous_lib import *
 
@@ -29,6 +30,11 @@ L.door(48, 9, 1, 6, 'A')    # R01 -> R02 (a terra)
 L.door(65, 30, 6, 1, 'A')   # R22 -> R12: botola nel soffitto di R22 (stesso gruppo: si apre insieme, scorciatoia di ritorno)
 L.door(48, 24, 1, 6, 'B')   # R12 -> R11: unico ingresso della stanza della chiave
 L.door(37, 1, 1, 5, 'C')    # alcova della ragazza in R01
+
+# --- vasche di lava (sul pavimento pieno, mai sotto un varco) ---
+L.tub(11, 20, 40, 41)    # R20: fra l'ingresso da R21 e il varco in su, sotto la stella
+L.tub(26, 33, 13, 14)    # R01: appena entrati da R00, sotto la pattuglia dell'X
+L.tub(39, 45, 28, 29)    # R11: fra la porta B e la chiave, si sorvola all'andata e al ritorno
 
 # --- mensole ---
 L.hline(6, 34, 47)    # R01: balcone dell'alcova (3 tile fuori dalla porta C per atterrare), sotto restano 8 tile
@@ -60,6 +66,10 @@ L.put(56, 18, 2, 2, ENS)         # accanto all'OPEN B, sopra la punta della mens
 L.put(35, 28, 2, 2, KEY)         # sopra la partenza
 L.put(28, 28, 2, 2, OPEN, 'C')
 
+# --- fuoco fatuo: si materializza in R02 quando Theseus arriva al checkpoint (entro 14 tile),
+#     poi vaga ovunque attraversando i muri: insegue la seconda metà dell'anello ---
+L.put(62, 4, 2, 2, WISP)
+
 L.check()
 L.save('vitto-03-filo-bugiardo.js',
        name='Il Filo Bugiardo',
@@ -68,5 +78,6 @@ L.save('vitto-03-filo-bugiardo.js',
        comment='VITTO LEVELS 03 "Il Filo Bugiardo" - generato da tools/livelli/vitto03_filo_bugiardo.py\n'
                'La chiave è sopra la partenza ma si raggiunge solo facendo tutto l\'anello in senso orario.\n'
                'Soluzione: R20 -> R10 -> R00: OPEN A -> R01 (ragazza dietro la porta C) -> porta A -> R02 (checkpoint) -> '
-               'R12: OPEN B -> porta B -> R11: chiave + OPEN C -> ritorno R12 -> R02 -> R01 -> porta C -> ragazza.',
-       note='Difficoltà 5: il radar inganna, anello orario A → B → C con ritorno alla ragazza.')
+               'R12: OPEN B -> porta B -> R11: chiave + OPEN C -> ritorno R12 -> R02 -> R01 -> porta C -> ragazza.\n'
+               'Tre vasche di lava (R20, R01, R11) e un fuoco fatuo che compare in R02 e poi vaga attraversando i muri.',
+       note='Difficoltà 5: il radar inganna, anello orario A → B → C, 3 vasche di lava e il fuoco fatuo.')

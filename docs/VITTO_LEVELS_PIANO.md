@@ -26,6 +26,11 @@ la luce. Arianna aspetta all'uscita e insieme volano fuori, verso il sole.
 
 ## 2. Tabella riassuntiva
 
+> **Ordine cambiato (2026-10-30)**: nella campagna giocabile "Ponti di Porta" (scheda 04) è diventato il **livello 1**
+> e "Le Nove Stanze" (scheda 01, più complesso) è diventato il **livello 4**. Le schede e gli script
+> (`vitto01_…`, `vitto04_…`) tengono il numero originale; se si ripromuovono: `promuovi.py vitto-04-… 1` e `vitto-01-… 4`.
+> Dal 05 in poi scheda e livello hanno lo stesso numero.
+
 | N° | Titolo | Trucco principale | Diff. | Dimensioni | Sfondo |
 |---|---|---|---|---|---|
 | 01 | Le Nove Stanze | Griglia 3×3, rebus A → C → B con sacca cieca (esiste già) | 4 | 72 × 46 | 4 |

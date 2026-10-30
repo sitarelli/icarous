@@ -21,10 +21,11 @@ import os
 import re
 import sys
 
-EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, THES, KEY, ENH, STAR, ENV, ENS, ENX, TIMER, WISP = range(18)
+EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, THES, KEY, ENH, STAR, ENV, ENS, ENX, TIMER, WISP, WISP2 = range(19)
 NAMES = {WALL: 'muro', LAVA: 'lava', WOMAN: 'ragazza', OPEN: 'OPEN', CLOSE: 'CLOSE', DOOR: 'porta', FLAG: 'cagnolino',
          BULB: 'lampadina', THES: 'Theseus', KEY: 'chiave', ENH: 'nemico H', STAR: 'stella', ENV: 'nemico V',
-         ENS: 'nemico S', ENX: 'nemico X', TIMER: 'timer', WISP: 'fuoco fatuo'}
+         ENS: 'nemico S', ENX: 'nemico X', TIMER: 'timer', WISP: 'fuoco fatuo',
+         WISP2: 'fuoco fatuo blu'}
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 TEST_DIR = os.path.join(ROOT, 'levels', 'test')
@@ -107,8 +108,11 @@ class Level:
         if not by(FLAG): W.append('nessun cagnolino: il livello non ha checkpoint')
         # da Vitto Levels 03 in poi ogni livello ha il suo fuoco fatuo (entra da fuori, vaga e passa i muri)
         if len(by(WISP)) != 1: W.append(f'fuochi fatui: {len(by(WISP))} (da Vitto Levels 03 in poi ne serve 1 per livello)')
+        # il blu (da Vitto Levels 06 in poi) compare solo dopo il rosso: senza rosso non si sveglierebbe mai
+        if by(WISP2) and not by(WISP): E.append('fuoco fatuo blu senza quello rosso: non comparirebbe mai')
+        if len(by(WISP2)) > 1: W.append(f'fuochi fatui blu: {len(by(WISP2))} (ne basta 1)')
         for b in blocks:   # entità fuse per sbaglio (due oggetti uguali attaccati)
-            if b['t'] in (KEY, STAR, BULB, TIMER, FLAG, ENH, ENV, ENS, ENX, WISP) and (b['w'] > 3 or b['h'] > 3):
+            if b['t'] in (KEY, STAR, BULB, TIMER, FLAG, ENH, ENV, ENS, ENX, WISP, WISP2) and (b['w'] > 3 or b['h'] > 3):
                 W.append(f"{NAMES[b['t']]} enorme {b['w']}×{b['h']} in ({b['x']},{b['y']}): due blocchi uguali attaccati?")
 
         # lava in vasca con sponde rialzate
@@ -196,7 +200,7 @@ class Level:
         count = lambda t: len(by(t))
         print(f'Livello {cols}×{rows}, tile {self.tile}, muri {walls:.1%}')
         print(f'Ricariche: {count(BULB)} lampadine, {count(STAR)} stelle, {count(TIMER)} timer · '
-              f'Nemici: {count(ENH)} H, {count(ENV)} V, {count(ENX)} X, {count(ENS)} S, {count(WISP)} fuoco fatuo · Cagnolini: {count(FLAG)}')
+              f'Nemici: {count(ENH)} H, {count(ENV)} V, {count(ENX)} X, {count(ENS)} S, {count(WISP)} fuoco fatuo, {count(WISP2)} blu · Cagnolini: {count(FLAG)}')
         if self.solution is not None:
             print('Ordine porte necessario:', ' -> '.join(self.solution) if self.solution else 'nessuna porta')
         for w in dict.fromkeys(W): print('  ATTENZIONE:', w)
@@ -274,7 +278,7 @@ class Level:
     # ------------------------------------------------------------------ salvataggio
     def to_js(self, name='', intro='', background=None, comment=''):
         cell = lambda c: f"{{type:{c['type']},group:'{c['group']}'}}" if isinstance(c, dict) else str(c)
-        js = '/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */\n'
+        js = '/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */\n'
         for line in comment.strip().splitlines():
             js += f'/* {line.strip()} */\n'
         js += 'loadLevelData({\n'

@@ -39,6 +39,7 @@
 | 13 | `ENV` | V | su e giù in verticale, rimbalza su pavimento e soffitto |
 | 14 | `ENS` | S | fermo, fa male solo se lo tocchi |
 | 17 | `WISP` | **Fuoco fatuo** | spirito di lava luminoso: dorme invisibile sul suo blocco, **compare con animazione e risata** quando Theseus arriva entro 14 tile, poi **vaga a caso** e **rimbalza su muri e porte chiuse** (non li attraversa). **Tende sempre verso Theseus** seguendo la strada vera attraverso varchi e porte aperte (insegue "a zig-zag", non in linea d'aria). Se Theseus è dietro porte chiuse, punta in linea d'aria e sbatte. Si congela col timer. |
+| 18 | `WISP2` | **Fuoco fatuo blu** | identico al fuoco fatuo, ma blu e **si sveglia solo dopo che il rosso è comparso almeno una volta** (anche se Theseus gli passa vicino prima). Da Vitto Levels 06 in poi. |
 
 Tutti fanno lo stesso danno al contatto (−0,25 di energia, poi 2 s di invulnerabilità).
 
@@ -49,6 +50,8 @@ Tutti fanno lo stesso danno al contatto (−0,25 di energia, poi 2 s di invulner
   prima del momento voluto. Siccome **rimbalza sui muri**, resta nella zona collegata da varchi aperti a dove compare:
   mettilo in una stanza con varchi verso il percorso, non in una stanza chiusa da porte (altrimenti resta lì dentro).
   Lascia attorno al blocco almeno 3 tile liberi. Il validatore segnala ATTENZIONE se manca.
+- **Da Vitto Levels 06 in poi c'è anche il fuoco fatuo BLU** (`WISP2`, tile 18): compare dopo il rosso, quindi mettilo
+  più avanti sul percorso (il rosso all'andata, il blu nella seconda metà). Stesse regole di spazio del rosso.
 
 ## Regola fissa: un CLOSE per ogni gruppo di porte
 Vitto vuole che **ogni gruppo di porte abbia anche il suo CLOSE** (il validatore dà ATTENZIONE se manca). Due usi:

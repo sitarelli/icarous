@@ -949,6 +949,9 @@ function drawEnemies() {
     });
 }
 
+const WISP_RED = { halo: '#ff4a10', body: '#ff7a2a', core: '#ffd36a', spark: '#ffe27a', eye: '#3a0800', ember: ['#ffd36a', '#ff8a1e'], ring: '#ffb347' };
+const WISP_BLUE = { halo: '#1e6bff', body: '#3f8cff', core: '#bfe4ff', spark: '#a8e0ff', eye: '#00143a', ember: ['#bfe4ff', '#3f8cff'], ring: '#6fb4ff' };
+
 // Fuoco fatuo: niente sprite, è disegnato a mano (alone, coda, corpo, occhi che guardano dove va)
 function drawWisp(en, frozen, blinkWhite) {
     if (en.state === 'dormant') return;
@@ -958,13 +961,15 @@ function drawWisp(en, frozen, blinkWhite) {
     if (cx < -R * 8 || cy < -R * 8 || cx > config.viewportWidth + R * 8 || cy > config.viewportHeight + R * 8) return;
     const t = Date.now() * 0.001 + en.seed;
     // colori della lava (ghiaccio quando è congelato dal timer)
-    const halo = frozen ? (blinkWhite ? '#ffffff' : '#bfeaff') : '#ff4a10';
-    const body = frozen ? '#dff4ff' : '#ff7a2a';
-    const core = frozen ? '#ffffff' : '#ffd36a';
+    // colori della lava, o blu per il secondo fuoco fatuo (ghiaccio quando è congelato dal timer)
+    const pal = en.blue ? WISP_BLUE : WISP_RED;
+    const halo = frozen ? (blinkWhite ? '#ffffff' : '#bfeaff') : pal.halo;
+    const body = frozen ? '#dff4ff' : pal.body;
+    const core = frozen ? '#ffffff' : pal.core;
     const pulse = 0.8 + Math.sin(t * 4) * 0.2;
     // comparsa: braci che convergono e anello di fuoco, poi il corpo si gonfia con un piccolo rimbalzo
     const k = en.state === 'appearing' ? en.appear : 1;
-    if (k < 1) drawWispSummon(cx, cy, R, k, t);
+    if (k < 1) drawWispSummon(cx, cy, R, k, t, pal);
     const grow = Math.max(0, (k - 0.45) / 0.55);
     if (grow <= 0) return;
     const r = R * (1 + 0.25 * Math.sin(grow * Math.PI)) * grow;
@@ -984,7 +989,7 @@ function drawWisp(en, frozen, blinkWhite) {
         ctx.drawImage(glowSprite(halo), toScreenX(p.x) - tr / 2, toScreenY(p.y) - tr / 2, tr, tr);
     });
     // due scintille che gli girano attorno
-    ctx.fillStyle = '#ffe27a';
+    ctx.fillStyle = pal.spark;
     for (let i = 0; i < 2; i++) {
         const a = t * 3 + i * Math.PI;
         ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 9 + i);
@@ -1010,7 +1015,7 @@ function drawWisp(en, frozen, blinkWhite) {
     const ex = Math.cos(look) * r * 0.18, ey = Math.sin(look) * r * 0.18;
     [-1, 1].forEach(s => {
         const x = cx + s * r * 0.34 + ex, y = cy - r * 0.05 + ey;
-        ctx.fillStyle = '#3a0800';
+        ctx.fillStyle = pal.eye;
         ctx.beginPath();
         ctx.ellipse(x, y, r * 0.17, r * 0.24, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -1023,23 +1028,23 @@ function drawWisp(en, frozen, blinkWhite) {
 }
 
 // Evocazione: 10 braci che spiraleggiano verso il centro e un anello di fuoco che si stringe
-function drawWispSummon(cx, cy, R, k, t) {
+function drawWispSummon(cx, cy, R, k, t, pal) {
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     const fade = Math.min(1, k * 4) * Math.min(1, (1 - k) * 5);
     const g = R * (3 + 6 * k);
     ctx.globalAlpha = 0.8 * fade;
-    ctx.drawImage(glowSprite('#ff4a10'), cx - g / 2, cy - g / 2, g, g);
+    ctx.drawImage(glowSprite(pal.halo), cx - g / 2, cy - g / 2, g, g);
     for (let i = 0; i < 10; i++) {
         const a = i * Math.PI / 5 + k * 5 + t;
         const d = R * 7 * (1 - k);
         const s = Math.max(1.5, R * (0.12 + 0.12 * k));
         ctx.globalAlpha = fade;
-        ctx.fillStyle = i % 2 ? '#ffd36a' : '#ff8a1e';
+        ctx.fillStyle = pal.ember[i % 2];
         ctx.fillRect(cx + Math.cos(a) * d - s, cy + Math.sin(a) * d - s, s * 2, s * 2);
     }
     ctx.globalAlpha = 0.9 * fade;
-    ctx.strokeStyle = '#ffb347';
+    ctx.strokeStyle = pal.ring;
     ctx.lineWidth = Math.max(2, R * 0.18);
     ctx.beginPath();
     ctx.arc(cx, cy, R * (4.5 * (1 - k) + 0.6), 0, Math.PI * 2);

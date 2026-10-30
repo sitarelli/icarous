@@ -114,8 +114,9 @@ function wispChaseTarget(cx, cy) {
     return { x: (i % W + 0.5) * ts, y: (Math.floor(i / W) + 0.5) * ts };
 }   // secondi di animazione (intanto non fa danno)
 
-export function createWisp(x, y, w, h) {
-    const en = { x, y, w, h, vx: 0, vy: 0, type: 'W', homeX: x, homeY: y, seed: Math.random() * 100, trail: [] };
+// blue = fuoco fatuo blu (tile 18): uguale al rosso, ma si sveglia solo dopo che il rosso è già comparso
+export function createWisp(x, y, w, h, blue = false) {
+    const en = { x, y, w, h, vx: 0, vy: 0, type: 'W', blue, homeX: x, homeY: y, seed: Math.random() * 100, trail: [] };
     putWispToSleep(en, 0);
     return en;
 }
@@ -151,8 +152,11 @@ function updateWisp(en, dt, dm) {
     const px = player.x + player.w / 2, py = player.y + player.h / 2;
     if (en.state === 'dormant') {
         if (en.wait > 0) { en.wait -= dt; return; }
+        // il blu aspetta che il rosso sia comparso almeno una volta (anche se poi è tornato a dormire dopo una morte)
+        if (en.blue && !enemies.some(o => o.type === 'W' && !o.blue && o.woke)) return;
         if (Math.hypot(px - cx, py - cy) < ts * WISP_WAKE_RANGE) {
             en.state = 'appearing';
+            en.woke = true;
             en.appear = 0;
             addCameraShake(5);
             createColorParticles(cx, cy, 16, 'hit');

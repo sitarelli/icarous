@@ -407,6 +407,7 @@ function initGame(levelData) {
             else if (type === 15) tempEnemies.push({ x: pxX, y: pxY, w: pxW, h: pxH, vx: config.enemySpeedMultiplier * config.tileSize, vy: 0, type: 'X' });
             else if (type === 16) tempItems.push({ x: pxX, y: pxY, w: pxW, h: pxH, type: 'timer', taken: false });
             else if (type === 17) tempEnemies.push(createWisp(pxX, pxY, pxW, pxH));
+            else if (type === 18) tempEnemies.push(createWisp(pxX, pxY, pxW, pxH, true));
             for (let r = y; r < y + h; r++) for (let c = x; c < x + w; c++) currentMap[r][c] = 0;
         }
     }

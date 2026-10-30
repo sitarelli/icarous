@@ -17,7 +17,7 @@ export const CAMPAIGNS = {
         tag: 'VITTO LEVELS',
         desc: 'Livelli nuovi, disegnati da Vitto e Claude',
         dir: 'levels/vitto',       // levels/vitto/level1.js ...
-        count: 4
+        count: 5
     }
 };
 

@@ -71,7 +71,7 @@ L.put(51, 3, 3, 3, BULB)
 L.put(44, 12, 3, 3, TIMER)
 L.put(31, 6, 2, 2, ENX)
 # --- CLOSE: uno per gruppo ---
-L.put(44, 43, 2, 2, CLOSE, 'A')   # R21, davanti alla porta A: chi ci cammina sopra la richiude (va saltato in volo)
+L.put(42, 43, 2, 2, CLOSE, 'A')   # R21, attaccato alla sponda destra della vasca: non si calpesta più scendendo davanti alla porta A
 L.put(33, 28, 2, 2, CLOSE, 'C')   # R11, sul pavimento fra le due porte C: se lo calpesti torni a prendere l'OPEN C
 L.put(58, 13, 2, 2, CLOSE, 'B')   # R02: richiude la botola e rimette il ponte sulla lava di R01 (comodo per tornare)
 # --- R00 (ragazza) ---

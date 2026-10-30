@@ -68,7 +68,7 @@ L.put(28, 28, 2, 2, OPEN, 'C')
 
 # --- CLOSE: uno per gruppo ---
 L.put(44, 13, 2, 2, CLOSE, 'A')   # R01, davanti alla porta A: calpestato la richiude (si torna fino a R00!)
-L.put(50, 28, 2, 2, CLOSE, 'B')   # R12, davanti alla porta B: calpestato la richiude; sopra è aperto, si scavalca in volo
+L.put(55, 28, 2, 2, CLOSE, 'B')   # R12, a terra sotto la mensola dell'OPEN: chi si lascia cadere dritto richiude la porta B
 L.put(66, 13, 2, 2, CLOSE, 'C')   # R02, oltre il buco verso R12: al ritorno, se atterri lì richiudi l'alcova
 
 # --- fuoco fatuo: si materializza in R02 quando Theseus arriva al checkpoint (entro 14 tile),

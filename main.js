@@ -91,14 +91,12 @@ imagesToLoad.forEach(imgData => {
 });
 
 // --- AUDIO ---
-const preferMP3 = (() => {
-    const a = document.createElement('audio');
-    return a.canPlayType('audio/mpeg') !== '';
-})();
-
-function aud(name) {
-    return preferMP3 ? `audio/${name}.mp3` : `audio/${name}.ogg`;
-}
+// Un solo formato, MP3 mono 44,1 kHz (lo leggono tutti i browser). I suoni si decodificano UNA volta all'avvio
+// e suonano con la Web Audio API: partono subito, non pesano sulla CPU e su Safari basta sbloccare il
+// contesto audio al primo tasto/clic. Ogni suono è un oggetto Sfx con gli stessi comandi di un <audio>
+// (play, pause, paused, currentTime, loop, volume), così il resto del gioco non cambia.
+const AUDIO_VERSION = 2;   // alzalo quando sostituisci un file audio: il browser lo riscarica
+function aud(name) { return `audio/${name}.mp3?v=${AUDIO_VERSION}`; }
 
 const audioDefinitions = {
     doorOpen:   { src: aud('dooropen'),    volume: 0.6 },
@@ -118,22 +116,81 @@ export const sfx = {};
 
 Object.keys(audioDefinitions).forEach(name => { sfx[name] = null; });
 
-function loadSingleAudio(name, def) {
-    return new Promise(resolve => {
-        const audio = new Audio();
-        audio.volume = def.volume || 1.0;
-        audio.loop = def.loop || false;
-        audio.preload = 'auto';
-        let resolved = false;
-        const done = () => { if (resolved) return; resolved = true; sfx[name] = audio; resolve(); };
-        const fail = () => { if (resolved) return; resolved = true; sfx[name] = null; resolve(); };
-        audio.addEventListener('canplaythrough', done, { once: true });
-        audio.addEventListener('loadeddata', done, { once: true });
-        audio.addEventListener('error', fail, { once: true });
-        setTimeout(() => { if (!resolved) { if (audio.readyState >= 2) done(); else fail(); } }, 8000);
-        audio.src = def.src;
-        audio.load();
+class Sfx {
+    constructor(buffer, volume, loop) {
+        this.buffer = buffer;
+        this.loop = loop;
+        this.readyState = 4;
+        this.gain = audioCtx.createGain();
+        this.gain.gain.value = volume;
+        this.gain.connect(audioCtx.destination);
+        this.source = null;
+        this.offset = 0;        // da dove riparte dopo una pausa (come un <audio>)
+        this.startedAt = 0;
+        this.onended = this.onpause = this.onerror = null;
+    }
+    get paused() { return !this.source; }
+    get volume() { return this.gain.gain.value; }
+    set volume(v) { this.gain.gain.value = v; }
+    get currentTime() {
+        if (!this.source) return this.offset;
+        const t = audioCtx.currentTime - this.startedAt;
+        return this.loop ? t % this.buffer.duration : Math.min(t, this.buffer.duration);
+    }
+    set currentTime(t) {
+        const playing = !!this.source;
+        this._stop();
+        this.offset = t;
+        if (playing) this._start();
+    }
+    play() {
+        if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+        if (!this.source) this._start();
+        return Promise.resolve();
+    }
+    pause() {
+        if (!this.source) return;
+        this.offset = this.currentTime;
+        this._stop();
+        if (this.onpause) this.onpause();
+    }
+    _start() {
+        const src = audioCtx.createBufferSource();
+        src.buffer = this.buffer;
+        src.loop = this.loop;
+        src.connect(this.gain);
+        const off = this.offset < this.buffer.duration ? this.offset : 0;
+        src.onended = () => {
+            if (this.source !== src) return;          // fermato a mano: non è la fine naturale
+            this.source = null; this.offset = 0;
+            if (this.onended) this.onended();
+        };
+        this.startedAt = audioCtx.currentTime - off;
+        src.start(0, off);
+        this.source = src;
+    }
+    _stop() {
+        const src = this.source;
+        this.source = null;
+        if (src) { try { src.stop(); } catch (e) {} src.disconnect(); }
+    }
+}
+
+// decodeAudioData nella forma a callback: funziona anche sui Safari vecchi (prima del 14.1)
+function decodeAudio(ac, data) {
+    return new Promise((resolve, reject) => {
+        const p = ac.decodeAudioData(data, resolve, reject);
+        if (p && p.catch) p.catch(reject);
     });
+}
+
+function loadSingleAudio(name, def) {
+    const ac = getOrCreateAudioContext();
+    return fetch(def.src)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+        .then(data => decodeAudio(ac, data))
+        .then(buffer => { sfx[name] = new Sfx(buffer, def.volume || 1.0, !!def.loop); })
+        .catch(() => { sfx[name] = null; });   // un suono mancante non blocca il gioco
 }
 
 function loadAllAudio(onProgress) {
@@ -274,42 +331,21 @@ function updateLowPowerTick(dt) {
     }
 }
 
-// Safari fa suonare un elemento audio solo se è partito almeno una volta durante un clic o un tasto:
-// i suoni del gioco partono dal ciclo di gioco, quindi al primo gesto li "sblocchiamo" tutti (play + pausa
-// immediata) e poi suoniamo sempre quegli stessi elementi, mai copie nuove (che sarebbero di nuovo bloccate).
-const _unlockedAudio = new WeakSet();
+// Safari (e Chrome) tengono il contesto audio sospeso finché non c'è un clic o un tasto: lo sblocchiamo a ogni gesto
 function unlockSounds() {
-    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-    let pending = false;
-    Object.values(sfx).forEach(audio => {
-        if (!audio) { pending = true; return; }
-        if (_unlockedAudio.has(audio)) return;
-        _unlockedAudio.add(audio);
-        if (!audio.paused) return;           // sta già suonando: è già sbloccato
-        try { audio.play().catch(() => {}); audio.pause(); audio.currentTime = 0; } catch (e) {}
-    });
-    if (!pending) ['keydown', 'pointerdown', 'touchend'].forEach(ev => window.removeEventListener(ev, unlockSounds, true));
+    if (audioCtx && audioCtx.state !== 'running') audioCtx.resume().catch(() => {});
 }
 ['keydown', 'pointerdown', 'touchend'].forEach(ev => window.addEventListener(ev, unlockSounds, true));
 
-const _oneShotThrottle = new Set();
+// I loop ripartono da dove erano; gli effetti singoli ripartono dall'inizio, ma non si sovrappongono a se stessi
 export function safePlayAudio(audio) {
-    if (!audio || audio.readyState === 0) return;
-    if (audio.loop) {
-        if (!audio.paused) return;
-        audio.play().catch(() => {});
-    } else {
-        if (_oneShotThrottle.has(audio)) return;
-        _oneShotThrottle.add(audio);
-        audio.onended = audio.onpause = audio.onerror = () => _oneShotThrottle.delete(audio);
-        try { audio.currentTime = 0; } catch (e) {}
-        audio.play().catch(() => { _oneShotThrottle.delete(audio); });
-    }
+    if (!audio || !audio.paused) return;
+    if (!audio.loop) audio.currentTime = 0;
+    audio.play();
 }
 
 export function stopAllSounds() {
-    Object.values(sfx).forEach(audio => { if (audio) { try { audio.pause(); audio.currentTime = 0; } catch(e) {} } });
-    _oneShotThrottle.clear();
+    Object.values(sfx).forEach(audio => { if (audio) { audio.pause(); audio.currentTime = 0; } });
 }
 
 // --- ZOOM ---

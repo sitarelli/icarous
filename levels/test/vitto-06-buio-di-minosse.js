@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
 /* VITTO LEVELS 06 "Il Buio di Minosse" - generato da tools/livelli/vitto06_buio_di_minosse.py */
 /* Labirinto 5x4 al buio: le lampadine segnano la strada giusta, le stelle sono esche nei vicoli ciechi. */
 /* Due fuochi fatui: il rosso (r1c1) compare all andata, il blu (r1c2) solo dopo il rosso. */

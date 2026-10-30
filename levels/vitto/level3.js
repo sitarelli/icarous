@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
 /* VITTO LEVELS 03 "The Lying Thread" - generato da tools/livelli/vitto03_filo_bugiardo.py */
 /* La chiave è sopra la partenza ma si raggiunge solo facendo tutto l'anello in senso orario. */
 /* Soluzione: R20 -> R10 -> R00: OPEN A -> R01 (ragazza dietro la porta C) -> porta A -> R02 (checkpoint) -> R12: OPEN B -> porta B -> R11: chiave + OPEN C -> ritorno R12 -> R02 -> R01 -> porta C -> ragazza. */

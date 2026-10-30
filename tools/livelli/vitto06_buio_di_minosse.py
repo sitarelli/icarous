@@ -44,7 +44,7 @@ L.door(88, 52, 1, 7, 'B')
 # r1c4 resta sigillata (vuota, tutta muri attorno)
 
 # ================= r3c0: partenza =================
-L.put(3, 56, 3, 3, THES)
+L.put(3, 56, 3, 3, ICAROUS)
 
 # ================= pozzo c0 (r2c0 - r1c0): il V e la lampadina 1 =================
 L.put(5, 20, 2, 2, ENV)       # su e giù fra il soffitto di r1c0 e il pavimento di r2c0, attraverso il varco (3..9)

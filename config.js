@@ -8,7 +8,7 @@ export const CAMPAIGNS = {
     originale: {
         name: 'CLASSIC',
         tag: '',
-        desc: 'The 13 levels rebuilt from Theseus for MSX',
+        desc: 'The 13 levels rebuilt from the MSX original',
         dir: 'levels',             // levels/level1.js ... level13.js
         count: 13
     },
@@ -67,7 +67,7 @@ export const config = {
 
 // Impostazioni dell'utente (sovrascritte da save.js all'avvio)
 export const settings = {
-    lighting: true   // Luce dinamica (grotta buia + alone attorno a Theseus)
+    lighting: true   // Luce dinamica (grotta buia + alone attorno a Icarous)
 };
 
 // Stato dei tasti/input (condiviso tra input.js e player.js)

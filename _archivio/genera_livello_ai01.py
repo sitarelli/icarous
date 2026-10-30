@@ -2,14 +2,14 @@
 
 Uso (Mac):  python3 tools/genera_livello_ai01.py
 Scrive levels/test/ai-01-nove-stanze.js e stampa il report di validazione.
-Il modello segue docs/THESEUS_LEVEL_DESIGN.md: muri a linee, stanze, varchi da 6,
+Il modello segue docs/ICAROUS_LEVEL_DESIGN.md: muri a linee, stanze, varchi da 6,
 vasche di lava con sponde rialzate, rebus a porte A-B-C con ritorno indietro.
 """
 from collections import deque
 import os
 
 COLS, ROWS, TS = 72, 46, 9
-EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, THES, KEY, ENH, STAR, ENV, ENS, ENX, TIMER = range(17)
+EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, ICAROUS, KEY, ENH, STAR, ENV, ENS, ENX, TIMER = range(17)
 
 g = [[EMPTY] * COLS for _ in range(ROWS)]
 
@@ -60,7 +60,7 @@ hline(7, 60, 66)    # R02: mensola con la chiave
 hline(8, 4, 10)     # R00: mensola della ragazza
 
 # --- R20 (partenza) ---
-put(3, 42, 3, 3, THES)
+put(3, 42, 3, 3, ICAROUS)
 put(16, 37, 2, 2, STAR)
 # --- R21 ---
 put(34, 38, 2, 2, STAR)        # stella rischiosa sopra la lava
@@ -120,7 +120,7 @@ for y in range(ROWS):
             for xx in range(x, x+w): seen.add((xx, yy))
         blocks.append((t, G(g[y][x]), x, y, w, h))
 count = lambda t: sum(1 for b in blocks if b[0] == t)
-for t, name in [(THES, 'player'), (KEY, 'chiave'), (WOMAN, 'ragazza')]:
+for t, name in [(ICAROUS, 'player'), (KEY, 'chiave'), (WOMAN, 'ragazza')]:
     if count(t) != 1: problems.append(f'{name}: {count(t)} blocchi (serve 1)')
 
 # lava: fondo solido e sponde rialzate
@@ -142,7 +142,7 @@ for y in range(ROWS):
 cells_of = {}
 for t, grp, x, y, w, h in blocks:
     cells_of.setdefault((t, grp), []).append((x, y, w, h))
-start = cells_of[(THES, None)][0][:2]
+start = cells_of[(ICAROUS, None)][0][:2]
 
 def blocked(x, y, open_groups):
     c = g[y][x]
@@ -187,7 +187,7 @@ def cell(c):
 out = os.path.join(os.path.dirname(__file__), '..', 'levels', 'test', 'ai-01-nove-stanze.js')
 os.makedirs(os.path.dirname(out), exist_ok=True)
 with open(out, 'w') as f:
-    f.write('/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */\n')
+    f.write('/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */\n')
     f.write('/* AI-01 "Le Nove Stanze" - generato da tools/genera_livello_ai01.py (difficoltà media). */\n')
     f.write('/* Soluzione: OPEN A (stanza centrale) -> porta A -> checkpoint -> OPEN C -> scorciatoia C -> OPEN B (sacca) -> porta B -> chiave -> lava + timer -> ragazza. */\n')
     f.write('loadLevelData({\n    name: "AI-01 · Le Nove Stanze",\n    background: 4,\n')

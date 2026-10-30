@@ -57,15 +57,15 @@ export function respawnPlayer() {
 }
 
 // ===== FUOCO FATUO (tile 17): spirito di lava che compare a un punto del livello, poi vaga a caso =====
-// Il blocco 17 nella mappa è il punto dove si materializza: dorme finché Theseus non ci arriva vicino,
+// Il blocco 17 nella mappa è il punto dove si materializza: dorme finché Icarous non ci arriva vicino,
 // poi compare con un'animazione e vaga a caso; se va contro un muro o una porta chiusa cambia direzione.
 const WISP_SPEED = 0.121;     // tile per frame (gli altri nemici vanno a 0.20)
-const WISP_WAKE_RANGE = 14;   // tile: quanto vicino deve arrivare Theseus per farlo comparire
+const WISP_WAKE_RANGE = 14;   // tile: quanto vicino deve arrivare Icarous per farlo comparire
 export const WISP_APPEAR_TIME = 1.4;
-const WISP_CHASE = 0.022;     // quanto tende verso Theseus (0 = del tutto a caso)
+const WISP_CHASE = 0.022;     // quanto tende verso Icarous (0 = del tutto a caso)
 const WISP_FREE_TIME = 0.6;   // dopo un rimbalzo vaga libero per un attimo prima di tornare a inseguire
 
-// "Mappa delle distanze" da Theseus attraverso le stanze (muri e porte chiuse bloccano), ricalcolata ogni mezzo secondo:
+// "Mappa delle distanze" da Icarous attraverso le stanze (muri e porte chiuse bloccano), ricalcolata ogni mezzo secondo:
 // il fuoco fatuo segue la strada vera fino a lui, non la linea d'aria (che in un labirinto lo farebbe solo sbattere).
 let wispField = null, wispFieldW = 0, wispFieldTimer = 0;
 function updateWispField(dt) {
@@ -98,7 +98,7 @@ function updateWispField(dt) {
     }
 }
 
-// Dove puntare: scende la mappa delle distanze per qualche passo e mira a quel punto (null = Theseus irraggiungibile)
+// Dove puntare: scende la mappa delle distanze per qualche passo e mira a quel punto (null = Icarous irraggiungibile)
 function wispChaseTarget(cx, cy) {
     if (!wispField) return null;
     const ts = config.tileSize, W = wispFieldW;
@@ -121,7 +121,7 @@ export function createWisp(x, y, w, h, blue = false) {
     return en;
 }
 
-// Torna a dormire nel suo punto; si risveglia quando Theseus torna vicino (non prima di "delay" secondi)
+// Torna a dormire nel suo punto; si risveglia quando Icarous torna vicino (non prima di "delay" secondi)
 function putWispToSleep(en, delay) {
     en.x = en.homeX;
     en.y = en.homeY;
@@ -174,7 +174,7 @@ function updateWisp(en, dt, dm) {
     // vagare: la curva cambia piano piano, a caso
     en.turn = Math.max(-0.045, Math.min(0.045, en.turn + (Math.random() - 0.5) * 0.02 * dm));
     en.angle += en.turn * dm;
-    // tendenza verso Theseus, ovunque sia: va a caso ma "scivola" sempre dalla sua parte, seguendo la strada vera
+    // tendenza verso Icarous, ovunque sia: va a caso ma "scivola" sempre dalla sua parte, seguendo la strada vera
     if (en.free > 0) en.free -= dt;
     else {
         const target = wispChaseTarget(cx, cy) || { x: px, y: py };
@@ -518,6 +518,7 @@ function createFeather(x, y, burst = false) {
         spin: (Math.random() - 0.5) * 0.15,
         sway: Math.random() * Math.PI * 2,
         life: 1.0,
+        tone: Math.random(),   // sfumatura fra ombra e luce delle ali
         size: config.tileSize * (0.35 + Math.random() * 0.25)
     });
 }
@@ -719,7 +720,7 @@ export function update(dt, hooks) {
         }
     }
 
-    // === POWER EROSION (THESEUS CORE MECHANIC) ===
+    // === POWER EROSION (ICAROUS CORE MECHANIC) ===
     const POWER_DRAIN_PER_SECOND = 0.007;
     damage(POWER_DRAIN_PER_SECOND * dt);
     if (player.isDying) return;

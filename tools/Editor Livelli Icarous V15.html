@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Theseus Editor v15 - Expanded & Zoomable (With Undo & Lines)</title>
+    <title>Icarous Editor v15 - Expanded & Zoomable (With Undo & Lines)</title>
     <style>
         body { background-color: #1a1a1a; color: #eee; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 10px; margin: 0; }
         h1 { margin: 10px 0; color: #fff; letter-spacing: 2px; font-size: 1.5rem; }
@@ -39,7 +39,7 @@
         #btnDraw.active, #btnLineWall.active { background: #999; color: #000; }
         #btnLava.active { background: #d00; }
         #btnStar.active { background: #ff0; color: #000; }
-        #btnThes.active { background: #00ffff; color: #000; }
+        #btnIcarous.active { background: #00ffff; color: #000; }
         #btnKey.active { background: #ffd700; color: #000; }
         #btnEnemyH.active { background: #800080; } 
         #btnEnemyV.active { background: #4b0082; }
@@ -88,7 +88,7 @@
 </head>
 <body>
 
-    <h1>🎮 THESEUS EDITOR v15</h1>
+    <h1>🎮 ICAROUS EDITOR v15</h1>
 
     <div class="info-panel">
         <b>Pan:</b> Tasto destro + trascina | <b>Disegna:</b> Click sinistro | <b>Griglia:</b> <span id="virtualSize">0x0 px</span> | <b>Zoom:</b> <span id="zoomLevel">100%</span>
@@ -154,7 +154,7 @@
         <div class="group">
             <div style="font-size:9px; color:#888;">5. EROI/KEY</div>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:2px;">
-                <button id="btnThes" onclick="setTool(9)">THES</button>
+                <button id="btnIcarous" onclick="setTool(9)">ICAROUS</button>
                 <button id="btnWoman" onclick="setTool(3)">WOMAN</button>
                 <button id="btnKey" onclick="setTool(10)">KEY</button>
                 <button id="btnStar" onclick="setTool(12)">STAR</button>
@@ -354,7 +354,7 @@
             }
         }
         if(empty) { minR=0; maxR=0; minC=0; maxC=0; }
-        let out = `/* LEGENDA: 1=Muro 2=Lava 3=Woman 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */\n`;
+        let out = `/* LEGENDA: 1=Muro 2=Lava 3=Woman 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */\n`;
         out += `loadLevelData({\n    tileSize: ${CONFIG.brickSize}, \n    cols: ${maxC - minC + 1},\n    rows: ${maxR - minR + 1},\n    map: [\n`;
         for(let r=minR; r<=maxR; r++) {
             let line = [];

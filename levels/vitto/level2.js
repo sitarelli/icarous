@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
 /* VITTO LEVELS 02 "Daedalus' Well" - generato da tools/livelli/vitto02_pozzo_di_dedalo.py */
 /* Sotto ogni botola c'è una vasca: scendendo bisogna sterzare. */
 /* Soluzione: OPEN A (oltre la botola) -> giù da A -> OPEN B -> giù da B (checkpoint) -> OPEN C -> giù da C -> oltre le due vasche: OPEN D + chiave -> risalita C -> B -> porta D -> ragazza. */

@@ -12,7 +12,7 @@
 6. Chiudi la chat. Livello successivo = chat nuova (così la conversazione resta corta e consuma meno).
 
 ## Per Claude: la procedura
-1. Leggi `docs/THESEUS_LEVEL_DESIGN.md` (vincoli), la **scheda NN** in `docs/VITTO_LEVELS_PIANO.md` e, come esempio,
+1. Leggi `docs/ICAROUS_LEVEL_DESIGN.md` (vincoli), la **scheda NN** in `docs/VITTO_LEVELS_PIANO.md` e, come esempio,
    `tools/livelli/vitto01_nove_stanze.py` e `tools/livelli/icarous_lib.py`.
 2. Scrivi `tools/livelli/vittoNN_<nome>.py` usando la libreria (`Level`, `frame`, `hline`, `vline`, `clear`, `door`,
    `tub`, `put`, `check`, `save`). **Non scrivere la matrice a mano.** Commenta le stanze come nel livello 01.
@@ -38,8 +38,8 @@
 | 15 | `ENX` | X | come H, sprite diverso |
 | 13 | `ENV` | V | su e giù in verticale, rimbalza su pavimento e soffitto |
 | 14 | `ENS` | S | fermo, fa male solo se lo tocchi |
-| 17 | `WISP` | **Fuoco fatuo** | spirito di lava luminoso: dorme invisibile sul suo blocco, **compare con animazione e risata** quando Theseus arriva entro 14 tile, poi **vaga a caso** e **rimbalza su muri e porte chiuse** (non li attraversa). **Tende sempre verso Theseus** seguendo la strada vera attraverso varchi e porte aperte (insegue "a zig-zag", non in linea d'aria). Se Theseus è dietro porte chiuse, punta in linea d'aria e sbatte. Si congela col timer. |
-| 18 | `WISP2` | **Fuoco fatuo blu** | identico al fuoco fatuo, ma blu e **si sveglia solo dopo che il rosso è comparso almeno una volta** (anche se Theseus gli passa vicino prima). Da Vitto Levels 06 in poi. |
+| 17 | `WISP` | **Fuoco fatuo** | spirito di lava luminoso: dorme invisibile sul suo blocco, **compare con animazione e risata** quando Icarous arriva entro 14 tile, poi **vaga a caso** e **rimbalza su muri e porte chiuse** (non li attraversa). **Tende sempre verso Icarous** seguendo la strada vera attraverso varchi e porte aperte (insegue "a zig-zag", non in linea d'aria). Se Icarous è dietro porte chiuse, punta in linea d'aria e sbatte. Si congela col timer. |
+| 18 | `WISP2` | **Fuoco fatuo blu** | identico al fuoco fatuo, ma blu e **si sveglia solo dopo che il rosso è comparso almeno una volta** (anche se Icarous gli passa vicino prima). Da Vitto Levels 06 in poi. |
 
 Tutti fanno lo stesso danno al contatto (−0,25 di energia, poi 2 s di invulnerabilità).
 

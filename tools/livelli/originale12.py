@@ -3,7 +3,7 @@
 Uso (Mac):  python3 tools/livelli/originale12.py
 
 Nella mappa MSX le porte non si vedono perché sono disegnate come mattoni normali. Il video
-"Theseus (MSX) [480p].mp4" (livello 12 da circa 19:50 a 21:50) mostra cosa succede:
+"walkthrough MSX [480p].mp4" (livello 12 da circa 19:50 a 21:50) mostra cosa succede:
 - toccando gli OPEN appoggiati sui tetti delle tre stanze centrali, metà del tetto sparisce (botole);
 - la stanza delle vasche (in alto) è solo una trappola: si apre e sotto c'è la lava;
 - nella stanza di mezzo (2 V gialli) c'è un CLOSE che richiude il tetto e un OPEN che lo riapre;
@@ -49,7 +49,7 @@ L.put(147, 17, 3, 3, BULB)
 L.put(163, 78, 2, 2, ENH); L.put(176, 78, 2, 2, ENH)
 
 # ================= FASCIA ALTA E LATO SINISTRO (come il file di Vitto) =================
-L.put(95, 8, 3, 3, THES)
+L.put(95, 8, 3, 3, ICAROUS)
 L.put(159, 2, 3, 3, ENX)
 L.put(184, 15, 3, 3, TIMER)
 L.put(18, 10, 3, 3, KEY)

@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
 /* VITTO LEVELS 04 "Ponti di Porta" - generato da tools/livelli/vitto04_ponti_di_porta.py */
 /* Tre fasce a serpentina, ognuna con un canale di lava il cui pavimento è un ponte-porta dello stesso gruppo della porta d'ingresso: aprendo la porta il ponte sparisce, il CLOSE lo rimette. */
 /* Soluzione: OPEN A -> porta A -> CLOSE A -> ponte A -> 1b -> 2a (checkpoint) -> OPEN B -> porta B -> CLOSE B (nicchia in alto) -> ponte B -> 2b chiave -> 3a: OPEN C -> porta C -> CLOSE C -> ponte C -> OPEN C in fondo -> porta C d'uscita -> ragazza. */

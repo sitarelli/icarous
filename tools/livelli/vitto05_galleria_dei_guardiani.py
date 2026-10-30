@@ -34,7 +34,7 @@ L.put(44, 2, 2, 2, ENX)
 L.put(52, 11, 3, 3, WOMAN)
 
 # ================= FASCIA MEDIA: atrio =================
-L.put(3, 27, 3, 3, THES)
+L.put(3, 27, 3, 3, ICAROUS)
 
 # ================= FASCIA MEDIA: la GALLERIA (x 23..112) =================
 # rialzi a terra: U rovesciata 4×3 (righe 27..29), sopra restano 12 tile liberi

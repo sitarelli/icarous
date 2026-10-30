@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
 /* VITTO LEVELS 07 "Porte Gemelle" - generato da tools/livelli/vitto07_porte_gemelle.py */
 /* Gruppi condivisi: OPEN A (ala est) apre la botola della chiave e la gabbia dei due X nell ala ovest; OPEN B (ala ovest) apre la botola della ragazza e la gabbietta del V nell ala est. */
 /* Soluzione: sala -> ala ovest calma: OPEN B -> sala -> ala est: OPEN A (fuoco fatuo rosso) -> sala (checkpoint) -> botola A -> chiave (fuoco fatuo blu) -> sala -> ala est -> botola B -> ragazza. Prima l est = ala ovest infestata dagli X. */

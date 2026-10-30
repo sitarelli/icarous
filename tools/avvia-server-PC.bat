@@ -2,8 +2,8 @@
 title Server Gioco ES6 - Desktop
 echo Sto entrando nella cartella del gioco...
 
-:: Spostamento forzato nella cartella specifica
-cd /d "C:\Users\vitto\Desktop\thes-main\"
+:: Si sposta nella cartella del gioco (quella sopra tools)
+cd /d "%~dp0.."
 
 echo Cartella attuale: %cd%
 echo.

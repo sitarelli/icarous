@@ -209,7 +209,7 @@ $('file').onchange = e => {
 $('btn-reload').onclick = () => { if (currentSrc) play(currentSrc, $('current').textContent); };
 
 /* ---------- controllo automatico del livello ----------
-   Stesse regole di docs/THESEUS_LEVEL_DESIGN.md: griglia, cornice, pezzi obbligatori,
+   Stesse regole di docs/ICAROUS_LEVEL_DESIGN.md: griglia, cornice, pezzi obbligatori,
    vasche di lava, e risolvibilità con l'ingombro 3x3 del player e le porte a gruppi. */
 function validate(text) {
     const out = [];
@@ -245,12 +245,12 @@ function validate(text) {
         blocks.push({ t, g, x, y, w, h });
     }
     const count = t => blocks.filter(b => b.t === t).length;
-    [[9, 'Theseus (9)'], [10, 'Chiave (10)'], [3, 'Ragazza (3)']].forEach(([t, n]) => {
+    [[9, 'Icarous (9)'], [10, 'Chiave (10)'], [3, 'Ragazza (3)']].forEach(([t, n]) => {
         const c = count(t);
         add(c === 1 ? 'ok' : 'bad', `${n}: ${c === 1 ? 'presente' : c + ' blocchi (ne serve 1)'}`);
     });
-    const thes = blocks.find(b => b.t === 9);
-    if (thes && (thes.w !== 3 || thes.h !== 3)) add('warn', `Theseus è ${thes.w}×${thes.h}: consigliato 3×3`);
+    const icarous = blocks.find(b => b.t === 9);
+    if (icarous && (icarous.w !== 3 || icarous.h !== 3)) add('warn', `Icarous è ${icarous.w}×${icarous.h}: consigliato 3×3`);
     const fl = count(7);
     add(fl ? 'ok' : 'warn', fl ? `Checkpoint (cagnolino): ${fl}` : 'Nessun cagnolino: niente checkpoint');
 
@@ -280,12 +280,12 @@ function validate(text) {
     else if (doorGroups.size) add('ok', `Porte: gruppi ${[...doorGroups].sort().join(', ')}`);
 
     // risolvibilità con ingombro 3x3 e porte
-    if (thes) {
-        const pw = thes.w, ph = thes.h;
+    if (icarous) {
+        const pw = icarous.w, ph = icarous.h;
         const blocked = (x, y, open) => { const c = map[y][x]; return T(c) === 1 || (T(c) === 6 && !open.has(G(c))); };
         const region = open => {
             const ok = (x, y) => x > 0 && y > 0 && x + pw < cols && y + ph < rows && (() => { for (let j = 0; j < ph; j++) for (let i = 0; i < pw; i++) if (blocked(x + i, y + j, open)) return false; return true; })();
-            const start = [thes.x, thes.y], seenR = new Set([start + '']), q = [start];
+            const start = [icarous.x, icarous.y], seenR = new Set([start + '']), q = [start];
             while (q.length) {
                 const [x, y] = q.shift();
                 for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
@@ -309,7 +309,7 @@ function validate(text) {
             });
         }
         if (solution) add('ok', `Risolvibile${solution.length ? ' — ordine porte: ' + solution.join(' → ') : ' (nessuna porta necessaria)'}`);
-        else add('bad', 'Non risolvibile: chiave o ragazza irraggiungibili (passaggi troppo stretti per un Theseus 3×3 o porte bloccate)');
+        else add('bad', 'Non risolvibile: chiave o ragazza irraggiungibili (passaggi troppo stretti per un Icarous 3×3 o porte bloccate)');
     }
 
     const walls = map.flat().filter(c => T(c) === 1).length / (rows * cols);

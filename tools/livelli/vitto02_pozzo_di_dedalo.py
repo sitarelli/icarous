@@ -39,7 +39,7 @@ L.tub(21, 27, 43, 44)
 L.tub(36, 42, 43, 44)
 
 # --- P1 (partenza): l'OPEN A è dall'altra parte della botola ---
-L.put(3, 8, 3, 3, THES)
+L.put(3, 8, 3, 3, ICAROUS)
 L.put(12, 5, 2, 2, STAR)
 L.put(45, 9, 2, 2, OPEN, 'A')       # prima della feritoia della cantina
 L.put(36, 9, 2, 2, CLOSE, 'A')      # fra la botola e l'OPEN: tornando indietro a piedi la richiudi (innocuo: riprova)

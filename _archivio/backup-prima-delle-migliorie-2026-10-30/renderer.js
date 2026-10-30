@@ -81,7 +81,7 @@ function drawImg(img, x, y, wS, hS, flip = false) {
 function drawPlayer() {
     let img, sx, sy, sw, sh;
     if (player.isDying) {
-        img = sprites.thes_die;
+        img = sprites.icarous_die;
         if (!img || !img.complete) return;
         const cols = 4;
         const rows = 2;
@@ -90,7 +90,7 @@ function drawPlayer() {
         sx = (player.deathFrame % cols) * sw;
         sy = Math.floor(player.deathFrame / cols) * sh;
     } else {
-        img = sprites.thes;
+        img = sprites.icarous;
         if (!img || !img.complete) return;
         if (player.damageCooldown > 0) { if (Math.floor(Date.now() / 100) % 2 === 0) return; }
         const cellW = img.naturalWidth / 4;

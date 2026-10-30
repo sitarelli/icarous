@@ -1,21 +1,21 @@
-# Theseus II (versione "plus"): i 6 piani — da fare più avanti
+# Icarous II (versione "plus"): i 6 piani — da fare più avanti
 
 Stato: **solo divisione in piani**. Nessun livello costruito. Quando Vitto vorrà partire, si decide prima come
-inserirla nel gioco (terza campagna in `CAMPAIGNS` di `config.js`, es. `theseus2`, cartella `levels/theseus2/`).
+inserirla nel gioco (terza campagna in `CAMPAIGNS` di `config.js`, es. `icarous2`, cartella `levels/icarous2/`).
 
 ## Materiale
-- Mappa intera: `docs/mappe/mappa_theseus2_mp83.png` (843×579, bassa risoluzione).
-- Un ritaglio per piano, ingrandito 3×: `docs/mappe/theseus2/piano01.png` … `piano06.png`.
+- Mappa intera: `docs/mappe/mappa_msx2_mp83.png` (843×579, bassa risoluzione).
+- Un ritaglio per piano, ingrandito 3×: `docs/mappe/icarous2/piano01.png` … `piano06.png`.
 
 **Limite importante:** a questa risoluzione un tile MSX è circa 2,8 pixel, troppo poco per estrarre i muri in
 automatico come fa `tools/livelli/msx_mappa.py` con l'Originale (lì 8 pixel per tile). Due strade:
-1. **Meglio:** trovare una versione grande della mappa. Quella dell'Originale (`docs/mappetheseus.png`) viene da
-   MSX Solutions; se esiste anche per Theseus II, basta aggiungere i pannelli in `PANNELLI` dello strumento
+1. **Meglio:** trovare una versione grande della mappa. Quella dell'Originale (`docs/mappa_msx.png`) viene da
+   MSX Solutions; se esiste anche per il seguito (Icarous II), basta aggiungere i pannelli in `PANNELLI` dello strumento
    (adattandolo a un secondo file) e i muri escono da soli.
 2. Altrimenti: ricostruzione a occhio dal ritaglio, sfruttando che nell'MSX i muri stanno su una griglia regolare
    (righe/colonne multiple di 4 tile MSX, corridoi da 3).
 
-## Elementi nuovi rispetto al primo Theseus (da capire prima di costruire)
+## Elementi nuovi rispetto al primo gioco (da capire prima di costruire)
 - **Porte con la lettera del gruppo** (riquadri blu con A, B, C...): qui i gruppi sono scritti sulla mappa.
 - **Anelli colorati** (gialli, azzurri, verdi, bianchi): oggetto nuovo, funzione da scoprire (ricarica? teletrasporto?).
 - **Più bandierine** per piano: forse più checkpoint.

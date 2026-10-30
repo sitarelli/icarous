@@ -35,7 +35,7 @@ L.tub(27, 36, 13, 14)
 L.door(27, 12, 10, 1, 'A')
 # --- 1a (partenza): OPEN A sulla mensola ---
 L.hline(6, 9, 14)
-L.put(2, 9, 3, 3, THES)
+L.put(2, 9, 3, 3, ICAROUS)
 L.put(11, 4, 2, 2, OPEN, 'A')
 L.put(16, 10, 2, 2, STAR)
 # --- canale A: CLOSE A a terra appena oltre la porta (staccato di 2 tile: la porta non si chiude addosso) ---
@@ -82,7 +82,7 @@ L.put(47, 34, 2, 2, OPEN, 'C')      # in fondo al ponte: riapre l'uscita (il pon
 L.put(69, 33, 3, 3, WOMAN)
 L.put(64, 30, 2, 2, ENS)
 
-# --- fuoco fatuo: si materializza in 2a mentre Theseus scende dal varco verso il checkpoint,
+# --- fuoco fatuo: si materializza in 2a mentre Icarous scende dal varco verso il checkpoint,
 #     poi lo insegue nel canale B finché la porta B è aperta ---
 L.put(56, 15, 2, 2, WISP)
 

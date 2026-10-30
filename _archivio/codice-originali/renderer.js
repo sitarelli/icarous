@@ -120,7 +120,7 @@ function drawPlayer() {
     let img, sx, sy, sw, sh;
 
     if (player.isDying) {
-        img = sprites.thes_die;
+        img = sprites.icarous_die;
         if (!img || !img.complete) return;
 
         // Griglia 4 colonne x 2 righe (700x400)
@@ -134,7 +134,7 @@ function drawPlayer() {
         sy = Math.floor(player.deathFrame / cols) * sh;
 
     } else {
-        img = sprites.thes;
+        img = sprites.icarous;
         if (!img || !img.complete) return;
 
         // EFFETTO LAMPEGGIO SE COLPITO
@@ -386,13 +386,13 @@ function drawVictoryMessage() {
     ctx.translate(config.viewportWidth / 2, config.viewportHeight / 2 - 30);
     ctx.scale(scale, scale);
     
-    // ===== STILE THESEUS APPLICATO A "LIVELLO COMPLETATO!" =====
+    // ===== STILE ICAROUS APPLICATO A "LIVELLO COMPLETATO!" =====
     const text = "LIVELLO COMPLETATO!";
     ctx.font = 'bold 36px Orbitron, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Layer multipli di colore (come il logo THESEUS)
+    // Layer multipli di colore (come il logo ICAROUS)
     const layers = [
         { color: '#ff00ff', offset: 6 },  // Magenta
         { color: '#00ffff', offset: 4 },  // Cyan

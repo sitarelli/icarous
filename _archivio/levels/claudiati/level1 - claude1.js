@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies */
 /* REBUS: 6 porte A-F in catena con backtracking (OPEN nelle sacche cieche). G = ponte: apri con OPEN-G, RICHIUDI con CLOSE-G per non cadere nella lava. Chiave 10 -> salva Donna 3. */
 loadLevelData({
     tileSize: 8, 

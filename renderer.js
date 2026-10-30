@@ -301,7 +301,7 @@ function drawWalls() {
     }
 
     // 3) bordi: ombra sotto e ai lati (disegnati in blocco, costano poco).
-    //    Niente striscia chiara sopra: Theseus deve poggiare sui mattoni, non su una linea disegnata.
+    //    Niente striscia chiara sopra: Icarous deve poggiare sui mattoni, non su una linea disegnata.
     const dk = Math.max(1, tz * 0.16), sd = Math.max(1, tz * 0.1);
     const bottom = new Path2D(), sides = new Path2D();
     for (let y = startY; y < endY; y++) {
@@ -406,11 +406,13 @@ function drawFeathers() {
         ctx.translate(px, py);
         ctx.rotate(p.rot);
         ctx.globalAlpha = Math.min(1, p.life * 1.5);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        // Stesso beige-tortora delle ali dello sprite (png/icarous.png): da #a4967e (ombra) a #d8c8a8 (luce)
+        const t = p.tone ?? 0.5;
+        ctx.fillStyle = `rgb(${164 + 52 * t | 0}, ${150 + 50 * t | 0}, ${126 + 42 * t | 0})`;
         ctx.beginPath();
         ctx.ellipse(0, 0, s, s * 0.32, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(180, 190, 210, 0.9)';
+        ctx.strokeStyle = 'rgba(96, 76, 56, 0.85)';   // rachide marrone come i contorni delle ali
         ctx.lineWidth = Math.max(0.6, s * 0.08);
         ctx.beginPath();
         ctx.moveTo(-s * 1.15, 0);
@@ -463,7 +465,7 @@ function drawFloatTexts() {
 
 function drawPlayer() {
     if (player.isDying) { drawDyingPlayer(); return; }
-    const img = sprites.thes;
+    const img = sprites.icarous;
     if (!img || !img.complete) return;
     if (player.damageCooldown > 0 && Math.floor(Date.now() / 100) % 2 === 0) return;
     const cellW = img.naturalWidth / 4;
@@ -505,14 +507,14 @@ function drawPlayer() {
 
 /* ===================== MORTE ===================== */
 
-// Riquadro di un fotogramma di png/thes_die.png (4 colonne × 2 righe)
+// Riquadro di un fotogramma di png/icarous_die.png (4 colonne × 2 righe)
 function dieFrame(img, n) {
     const sw = img.naturalWidth / 4, sh = img.naturalHeight / 2;
     return [(n % 4) * sw, Math.floor(n / 4) * sh, sw, sh];
 }
 
 function drawDyingPlayer() {
-    const img = sprites.thes_die;
+    const img = sprites.icarous_die;
     if (!img || !img.complete || player.deathMode === 'crumble') return;   // sbriciolato: restano solo i frammenti
     const z = config.zoom;
     const dx = toScreenX(player.x), dy = toScreenY(player.y);
@@ -584,7 +586,7 @@ function drawWaxPuddle() {
 function drawDeathParticles() {
     if (!deathParticles.length) return;
     const z = config.zoom;
-    const img = sprites.thes_die;
+    const img = sprites.icarous_die;
     const frame = img && img.complete ? dieFrame(img, 1) : null;
     for (const p of deathParticles) {
         const px = toScreenX(p.x), py = toScreenY(p.y);
@@ -1058,7 +1060,7 @@ function drawWisps() {
     enemies.forEach(en => { if (en.type === 'W') drawWisp(en, frozen, blinkWhite); });
 }
 
-// Anello del conto alla rovescia attorno a Theseus durante il power-up timer
+// Anello del conto alla rovescia attorno a Icarous durante il power-up timer
 function drawTimerRing() {
     if (!timerPowerUp.active || player.isDying || gameState.won) return;
     const cx = toScreenX(player.x + player.w / 2);
@@ -1368,7 +1370,7 @@ function drawTitleCard() {
         ctx.lineWidth = 6;
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
         const title = isLab ? 'LAB' : (gameState.levelTitle || `LEVEL ${String(gameState.levelNumber).padStart(2, '0')}`);
-        ctx.strokeText(title, vw / 2 + slide, vh * 0.2);   // in alto: al centro c'è Theseus
+        ctx.strokeText(title, vw / 2 + slide, vh * 0.2);   // in alto: al centro c'è Icarous
         ctx.fillStyle = '#ffffff';
         ctx.fillText(title, vw / 2 + slide, vh * 0.2);
         ctx.font = `500 ${Math.round(vh * 0.035)}px ${FONT_TEXT}`;

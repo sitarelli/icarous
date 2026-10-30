@@ -1,4 +1,4 @@
-# Theseus (stile MSX) — Documentazione del motore e regole per creare livelli
+# Icarous (stile MSX) — Documentazione del motore e regole per creare livelli
 
 > Documento di riferimento ricavato leggendo il motore reale (`game.js` / versione
 > modulare `config.js`, `player.js`, `input.js`, `renderer.js`, `main.js`).
@@ -10,7 +10,7 @@
 
 ## 1. Cos'è il gioco
 
-È un **cave-flyer** con gravità: controlli **Theseus**, che cade di continuo e
+È un **cave-flyer** con gravità: controlli **Icarous**, che cade di continuo e
 sale solo dando *spinta*. Devi raccogliere la **Chiave** e poi raggiungere la
 **Donna** per liberarla (sprite `unchained`) e passare al livello successivo.
 Lungo la strada perdi **energia** (barra Power) per il tempo, la lava e i nemici;
@@ -56,7 +56,7 @@ loadLevelData({
 | `6` | Porta | `triggers{type:'door',group,open:false}` | **Parte CHIUSA** ed è **solida da chiusa**. Si apre/chiude SOLO con gli interruttori del suo gruppo. |
 | `7` | Flag (cagnolino) | `items{flag}` | **Checkpoint**: toccandolo si salva la posizione; dopo il game over si può ripartire da lì (−500 punti). `flags++`. Non obbligatoria; mettine **una a metà percorso**. |
 | `8` | Bulb (lampadina) | `items{bulb}` | Ricarica **+0.5** power, `bulbs++`. |
-| `9` | Thes (player) | `player` | **Punto di partenza** e dimensione del player. **Deve essercene esattamente 1.** |
+| `9` | Icarous (player) | `player` | **Punto di partenza** e dimensione del player. **Deve essercene esattamente 1.** |
 | `10` | Key (chiave) | `items{key}` | Setta `hasKey=true`. **Prerequisito per salvare la Donna.** |
 | `11` | Nemico **H** | `enemies{type:'H'}` | Si muove **orizzontalmente**, rimbalza sui muri. |
 | `12` | Star (stella) | `items{star}` | Ricarica **+0.25** power, `stars++`. |
@@ -64,7 +64,7 @@ loadLevelData({
 | `14` | Nemico **S** | `enemies{type:'S'}` | **Statico** (fermo), danno solo al contatto. |
 | `15` | Nemico **X** | `enemies{type:'X'}` | Si muove **orizzontalmente** (sprite diverso), rimbalza sui muri. |
 | `16` | Timer | `items{timer}` | Ricarica **+0.1** power. |
-| `17` | Nemico **W** (Fuoco fatuo) | `enemies{type:'W'}` | Spirito di lava luminoso (rosso/arancio). Dorme invisibile sul blocco 17 finché Theseus non arriva **entro 14 tile**, poi **si materializza con un'animazione e una risata malefica** (1,4 s, intanto non fa danno) e **vaga a caso**: contro muri e porte chiuse **rimbalza e cambia direzione** (non li attraversa). **Tende verso Theseus** ovunque sia: va a caso ma scivola sempre dalla sua parte, seguendo la **strada vera** attraverso varchi e porte aperte (mappa delle distanze ricalcolata ogni 0,5 s), non la linea d'aria; dopo ogni rimbalzo vaga libero 0,6 s. Fa luce da solo, si congela col timer; ripartendo dal checkpoint torna a dormire sul suo punto. |
+| `17` | Nemico **W** (Fuoco fatuo) | `enemies{type:'W'}` | Spirito di lava luminoso (rosso/arancio). Dorme invisibile sul blocco 17 finché Icarous non arriva **entro 14 tile**, poi **si materializza con un'animazione e una risata malefica** (1,4 s, intanto non fa danno) e **vaga a caso**: contro muri e porte chiuse **rimbalza e cambia direzione** (non li attraversa). **Tende verso Icarous** ovunque sia: va a caso ma scivola sempre dalla sua parte, seguendo la **strada vera** attraverso varchi e porte aperte (mappa delle distanze ricalcolata ogni 0,5 s), non la linea d'aria; dopo ogni rimbalzo vaga libero 0,6 s. Fa luce da solo, si congela col timer; ripartendo dal checkpoint torna a dormire sul suo punto. |
 | `18` | Nemico **W blu** (Fuoco fatuo blu) | `enemies{type:'W', blue:true}` | Come il 17 ma blu; resta addormentato finché il fuoco fatuo rosso del livello non è comparso almeno una volta, poi si sveglia con la solita regola dei 14 tile. Da Vitto Levels 06 in poi. |
 
 > Nota: la Donna `3` è una *decorazione* (non blocca il movimento). I nemici e
@@ -88,7 +88,7 @@ grande `w×h` tile. Poi azzera quelle celle.
 Conseguenze pratiche:
 
 - **La dimensione dello sprite = dimensione del blocco.** Un blocco `3×3` di `9`
-  crea un Theseus 3×3 tile; un blocco `2×2` di `10` crea una chiave 2×2.
+  crea un Icarous 3×3 tile; un blocco `2×2` di `10` crea una chiave 2×2.
 - **[VINCOLO] Non mettere mai due entità dello stesso tipo attaccate** (adiacenti
   in orizzontale/verticale) se le vuoi separate: verrebbero fuse in un unico
   oggetto gigante. Lascia almeno **una cella diversa** (`0` o muro) tra loro.
@@ -96,7 +96,7 @@ Conseguenze pratiche:
   entità in modo imprevedibile.
 
 **Taglie consigliate (coerenti con i livelli esistenti):**
-Theseus `9` = 3×3 · Woman `3` = 3×3 · Bulb `8` = 3×3 · Timer `16` = 3×3 ·
+Icarous `9` = 3×3 · Woman `3` = 3×3 · Bulb `8` = 3×3 · Timer `16` = 3×3 ·
 Key `10` = 2×2 · Flag `7` = 2×2 · Star `12` = 2×2 · Interruttori `4`/`5` = 2×2 ·
 Nemici = 2×2 (o 3×3) · Porta `6` = 1 tile di spessore per l'altezza/larghezza del varco.
 
@@ -218,7 +218,7 @@ il livello sia effettivamente completabile.
 
 ---
 
-## 12. Compatibilità con l'Editor (Editor_Livelli_Thes_V15.html)
+## 12. Compatibilità con l'Editor (Editor_Livelli_Icarous_V15.html)
 
 - **Import (CARICA):** l'editor rimuove i commenti `/* */`, prende tutto tra la
   prima `(` e l'ultima `)` e fa `eval`. Quindi un file `loadLevelData({...})` con

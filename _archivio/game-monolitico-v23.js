@@ -58,7 +58,7 @@ const sprites = {};
 let loadedImages = 0;
 const imagesToLoad = [
     { name: 'brick', src: 'png/brick.png' },
-    { name: 'thes', src: 'png/thes.png' },
+    { name: 'icarous', src: 'png/icarous.png' },
     { name: 'woman', src: 'png/woman.png' },
     { name: 'enemyH', src: 'png/enemyh.png' },
     { name: 'enemyV', src: 'png/enemyv.png' },
@@ -71,7 +71,7 @@ const imagesToLoad = [
     { name: 'key', src: 'png/key.png' },
     { name: 'timer', src: 'png/timer.png' },
     { name: 'door', src: 'png/door.png' },
-    { name: 'thes_die', src: 'png/thes_die.png' },
+    { name: 'icarous_die', src: 'png/icarous_die.png' },
     { name: 'unchained', src: 'png/unchained.png' }
 ];
 
@@ -87,8 +87,8 @@ imagesToLoad.forEach(imgData => {
 const sfx = {
     doorOpen: new Audio('audio/dooropen.mp3'),
     doorClose: new Audio('audio/doorclose.mp3'),
-    walk: new Audio('audio/walkingthes.mp3'),
-    fly: new Audio('audio/flyingthes.m4a'),
+    walk: new Audio('audio/walking.mp3'),
+    fly: new Audio('audio/flying.m4a'),
     levelup: new Audio('audio/levelup.mp3'),
     beginLevel: new Audio('audio/beginlevel.mp3'),
     keyPickup: new Audio('audio/key.mp3'),
@@ -461,7 +461,7 @@ function update(dt) {
         player.damageCooldown -= dt;
     }
 
-    // === POWER EROSION (THESEUS CORE MECHANIC) ===
+    // === POWER EROSION (ICAROUS CORE MECHANIC) ===
     const POWER_DRAIN_PER_SECOND = 0.003; 
     gameState.power -= POWER_DRAIN_PER_SECOND * dt;
     
@@ -685,7 +685,7 @@ function drawPlayer() {
     let img, sx, sy, sw, sh;
 
     if (player.isDying) {
-        img = sprites.thes_die;
+        img = sprites.icarous_die;
         if (!img || !img.complete) return;
 
         // Griglia 4 colonne x 2 righe (700x400)
@@ -699,7 +699,7 @@ function drawPlayer() {
         sy = Math.floor(player.deathFrame / cols) * sh;
 
     } else {
-        img = sprites.thes;
+        img = sprites.icarous;
         if (!img || !img.complete) return;
 
         // EFFETTO LAMPEGGIO SE COLPITO

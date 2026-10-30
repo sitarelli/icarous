@@ -1,4 +1,4 @@
-"""Legge la mappa MSX ad alta risoluzione (docs/mappetheseus.png) e ne ricava i livelli originali.
+"""Legge la mappa MSX ad alta risoluzione (docs/mappa_msx.png) e ne ricava i livelli originali.
 
 Nella mappa ogni tile MSX è un quadretto di 8×8 pixel; un livello intero è 121×57 tile MSX.
 I livelli di Icarous sono 193×90: si scala di circa 1,6 (è la scala usata da Vitto per i livelli 1-12).
@@ -25,7 +25,7 @@ import sys
 import zlib
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..'))
-MAPPA = os.path.join(ROOT, 'docs', 'mappetheseus.png')
+MAPPA = os.path.join(ROOT, 'docs', 'mappa_msx.png')
 
 # Livello: (x pixel, y pixel dell'angolo in alto a sinistra della cornice, colonne MSX, righe MSX)
 PANNELLI = {
@@ -50,7 +50,7 @@ def _leggi_png(path):
         elif t == b'PLTE': pal = [tuple(c[i:i + 3]) for i in range(0, len(c), 3)]
         elif t == b'IDAT': idat += c
     if ct != 3:
-        sys.exit('La mappa deve essere un PNG a palette (come docs/mappetheseus.png)')
+        sys.exit('La mappa deve essere un PNG a palette (come docs/mappa_msx.png)')
     raw = zlib.decompress(idat); rows = []; prev = bytearray(w); i = 0
     for _ in range(h):
         f = raw[i]; line = bytearray(raw[i + 1:i + 1 + w]); i += 1 + w
@@ -179,7 +179,7 @@ def disegna_msx(L, n):
 def confronta(n):
     """Per ogni icona della mappa MSX dice cosa c'è nello stesso punto di levels/level<n>.js (raggio 2 tile)."""
     import json, re
-    nomi = {3: 'ragazza', 4: 'OPEN', 5: 'CLOSE', 6: 'porta', 7: 'cagnolino', 8: 'lampadina', 9: 'Theseus', 10: 'chiave',
+    nomi = {3: 'ragazza', 4: 'OPEN', 5: 'CLOSE', 6: 'porta', 7: 'cagnolino', 8: 'lampadina', 9: 'Icarous', 10: 'chiave',
             11: 'nemico H', 12: 'stella', 13: 'nemico V', 14: 'nemico S', 15: 'nemico X', 16: 'timer', 17: 'fuoco fatuo'}
     t = open(os.path.join(ROOT, 'levels', f'level{n}.js')).read()
     m = t[t.index('map:') + 4:]; m = m[:m.rindex(']') + 1]

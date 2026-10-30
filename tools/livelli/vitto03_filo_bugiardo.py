@@ -42,7 +42,7 @@ L.hline(23, 14, 21)   # R10: appoggio a metà salita, sotto il varco verso R00 (
 L.hline(23, 55, 57)   # R12: mensola dell'OPEN B, corta: non copre il CLOSE B (scendendo a sinistra si atterra accanto)
 
 # --- R21 (partenza): la chiave è 10 tile più su, dietro il soffitto ---
-L.put(34, 39, 3, 3, THES)
+L.put(34, 39, 3, 3, ICAROUS)
 # --- R22 (vicolo cieco finché A è chiusa): stella-esca a terra, H di guardia ---
 L.put(66, 40, 2, 2, STAR)
 L.put(56, 38, 2, 2, ENH)         # righe 38-39: il muro a sinistra è pieno, il varco verso R21 è più in alto
@@ -71,7 +71,7 @@ L.put(44, 13, 2, 2, CLOSE, 'A')   # R01, davanti alla porta A: calpestato la ric
 L.put(55, 28, 2, 2, CLOSE, 'B')   # R12, a terra sotto la mensola dell'OPEN: chi si lascia cadere dritto richiude la porta B
 L.put(66, 13, 2, 2, CLOSE, 'C')   # R02, oltre il buco verso R12: al ritorno, se atterri lì richiudi l'alcova
 
-# --- fuoco fatuo: si materializza in R02 quando Theseus arriva al checkpoint (entro 14 tile),
+# --- fuoco fatuo: si materializza in R02 quando Icarous arriva al checkpoint (entro 14 tile),
 #     poi ti insegue rimbalzando sui muri lungo la seconda metà dell'anello ---
 L.put(62, 4, 2, 2, WISP)
 

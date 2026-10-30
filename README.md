@@ -1,4 +1,4 @@
-# ICAROUS — remake di Theseus (MSX)
+# ICAROUS — remake di un classico MSX
 
 Gioco HTML5/JavaScript (moduli ES6, nessuna build). Si apre servendo la cartella con un server locale.
 

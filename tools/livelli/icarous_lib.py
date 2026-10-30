@@ -7,12 +7,12 @@ Ogni livello è uno script corto che usa questa libreria, ad esempio:
     L.frame()
     L.vline(24, 0, 45)
     L.tub(30, 40, 43, 44)
-    L.put(3, 42, 3, 3, THES)
+    L.put(3, 42, 3, 3, ICAROUS)
     ...
     L.check()                                  # stampa il report, si ferma se ci sono errori
     L.save('vitto-02-xxx.js', name='...', intro='...', background=5)
 
-Regole del motore e del level design: docs/THESEUS_LEVEL_DESIGN.md
+Regole del motore e del level design: docs/ICAROUS_LEVEL_DESIGN.md
 Coordinate: x = colonna (0 a sinistra), y = riga (0 in alto). Tutto in tile.
 """
 from collections import deque
@@ -21,9 +21,9 @@ import os
 import re
 import sys
 
-EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, THES, KEY, ENH, STAR, ENV, ENS, ENX, TIMER, WISP, WISP2 = range(19)
+EMPTY, WALL, LAVA, WOMAN, OPEN, CLOSE, DOOR, FLAG, BULB, ICAROUS, KEY, ENH, STAR, ENV, ENS, ENX, TIMER, WISP, WISP2 = range(19)
 NAMES = {WALL: 'muro', LAVA: 'lava', WOMAN: 'ragazza', OPEN: 'OPEN', CLOSE: 'CLOSE', DOOR: 'porta', FLAG: 'cagnolino',
-         BULB: 'lampadina', THES: 'Theseus', KEY: 'chiave', ENH: 'nemico H', STAR: 'stella', ENV: 'nemico V',
+         BULB: 'lampadina', ICAROUS: 'Icarous', KEY: 'chiave', ENH: 'nemico H', STAR: 'stella', ENV: 'nemico V',
          ENS: 'nemico S', ENX: 'nemico X', TIMER: 'timer', WISP: 'fuoco fatuo',
          WISP2: 'fuoco fatuo blu'}
 
@@ -43,7 +43,7 @@ class Level:
 
     # ------------------------------------------------------------------ disegno
     def put(self, x0, y0, w, h, t, group=None):
-        """Riempie un rettangolo w×h a partire da (x0, y0). Le entità sono blocchi: Theseus 3×3, chiave 2×2..."""
+        """Riempie un rettangolo w×h a partire da (x0, y0). Le entità sono blocchi: Icarous 3×3, chiave 2×2..."""
         for y in range(y0, y0 + h):
             for x in range(x0, x0 + w):
                 self.g[y][x] = {'type': t, 'group': group} if group else t
@@ -100,11 +100,11 @@ class Level:
 
         blocks = self._blocks()
         by = lambda t: [b for b in blocks if b['t'] == t]
-        for t in (THES, KEY, WOMAN):
+        for t in (ICAROUS, KEY, WOMAN):
             if len(by(t)) != 1: E.append(f"{NAMES[t]}: {len(by(t))} blocchi (ne serve esattamente 1)")
-        thes = by(THES)[0] if by(THES) else None
-        self._thes = thes
-        if thes and (thes['w'], thes['h']) != (3, 3): W.append(f"Theseus è {thes['w']}×{thes['h']}: usa 3×3")
+        icarous = by(ICAROUS)[0] if by(ICAROUS) else None
+        self._icarous = icarous
+        if icarous and (icarous['w'], icarous['h']) != (3, 3): W.append(f"Icarous è {icarous['w']}×{icarous['h']}: usa 3×3")
         if not by(FLAG): W.append('nessun cagnolino: il livello non ha checkpoint')
         # da Vitto Levels 03 in poi ogni livello ha il suo fuoco fatuo (entra da fuori, vaga e passa i muri)
         if len(by(WISP)) != 1: W.append(f'fuochi fatui: {len(by(WISP))} (da Vitto Levels 03 in poi ne serve 1 per livello)')
@@ -152,9 +152,9 @@ class Level:
                         W.append(f"{NAMES[b['t']]} in ({b['x']},{b['y']}) sbatte contro la porta {grp}: aperta, ci passa attraverso")
                         break
 
-        # risolvibilità: ricerca sugli stati (porte aperte) con l'ingombro reale di Theseus
-        if thes and by(KEY) and by(WOMAN):
-            pw, ph = thes['w'], thes['h']
+        # risolvibilità: ricerca sugli stati (porte aperte) con l'ingombro reale di Icarous
+        if icarous and by(KEY) and by(WOMAN):
+            pw, ph = icarous['w'], icarous['h']
             def region(open_groups):
                 def ok(x, y):
                     if x < 1 or y < 1 or x + pw >= cols or y + ph >= rows: return False
@@ -163,7 +163,7 @@ class Level:
                             c = g[y + j][x + i]
                             if T(c) == WALL or (T(c) == DOOR and G(c) not in open_groups): return False
                     return True
-                start = (thes['x'], thes['y'])
+                start = (icarous['x'], icarous['y'])
                 seen, q = {start}, deque([start])
                 while q:
                     x, y = q.popleft()
@@ -210,7 +210,7 @@ class Level:
         return not E
 
     def _check_traps(self, pw, ph, key, woman, by, E):
-        """Anti-blocco con i CLOSE: esplora tutti gli stati (porte aperte, chiave presa, dove si trova Theseus)
+        """Anti-blocco con i CLOSE: esplora tutti gli stati (porte aperte, chiave presa, dove si trova Icarous)
         premendo OPEN e CLOSE in qualsiasi ordine. Se da uno stato raggiungibile non si può più vincere,
         un CLOSE può chiudere il giocatore in trappola per sempre: è un ERRORE."""
         g, cols, rows = self.g, self.cols, self.rows
@@ -240,7 +240,7 @@ class Level:
                     if (px, py) in reg: return (px, py)
             return None
         switches = [(b, True) for b in by(OPEN)] + [(b, False) for b in by(CLOSE)]
-        start_pos = (self._thes['x'], self._thes['y'])
+        start_pos = (self._icarous['x'], self._icarous['y'])
         start = (frozenset(), False, region(frozenset(), start_pos))
         states, edges, q = {start: None}, {}, deque([start])
         while q:
@@ -278,7 +278,7 @@ class Level:
     # ------------------------------------------------------------------ salvataggio
     def to_js(self, name='', intro='', background=None, comment=''):
         cell = lambda c: f"{{type:{c['type']},group:'{c['group']}'}}" if isinstance(c, dict) else str(c)
-        js = '/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */\n'
+        js = '/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */\n'
         for line in comment.strip().splitlines():
             js += f'/* {line.strip()} */\n'
         js += 'loadLevelData({\n'

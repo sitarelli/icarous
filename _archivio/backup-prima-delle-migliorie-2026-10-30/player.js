@@ -278,7 +278,7 @@ export function update(dt, showRetryButtonCallback, currentLevelNumber, loadLeve
         }
     }
 
-    // === POWER EROSION (THESEUS CORE MECHANIC) ===
+    // === POWER EROSION (ICAROUS CORE MECHANIC) ===
     const POWER_DRAIN_PER_SECOND = 0.007; 
     gameState.power -= POWER_DRAIN_PER_SECOND * dt;
     

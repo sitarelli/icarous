@@ -1,6 +1,6 @@
 # Originale: livelli 11, 12, 13 (una chat per livello)
 
-Versione **Originale** = remake fedele del Theseus MSX. Qui non si inventa: si ricopia la mappa.
+Versione **Originale** = remake fedele del gioco MSX. Qui non si inventa: si ricopia la mappa.
 I livelli 1-10 sono a posto. L'11 va solo controllato, il 12 va completato, il 13 va creato da zero.
 
 ## Per Vitto: cosa incollare nella chat nuova
@@ -18,12 +18,12 @@ scrivi **"approvato, promuovilo"**.
 ## Per Claude: materiale e regole comuni
 
 ### Da leggere
-- `docs/THESEUS_LEVEL_DESIGN.md` (vincoli del motore) e `docs/COME_CREARE_UN_LIVELLO.md` (procedura, libreria).
+- `docs/ICAROUS_LEVEL_DESIGN.md` (vincoli del motore) e `docs/COME_CREARE_UN_LIVELLO.md` (procedura, libreria).
 - **Ritaglio della mappa** del livello: `docs/mappe/originale/livelloNN.png` (alta risoluzione, guardalo con Read).
-  Mappa intera ad alta risoluzione: `docs/mappetheseus.png` · vista d'insieme dei 13 livelli: `docs/mappe/mappa_theseus_mp83.png`.
+  Mappa intera ad alta risoluzione: `docs/mappa_msx.png` · vista d'insieme dei 13 livelli: `docs/mappe/mappa_msx_mp83.png`.
 
 ### Lo strumento che legge la mappa: `tools/livelli/msx_mappa.py`
-Nella mappa `docs/mappetheseus.png` ogni tile MSX è un quadretto di 8×8 pixel, livello = **121×57 tile MSX**.
+Nella mappa `docs/mappa_msx.png` ogni tile MSX è un quadretto di 8×8 pixel, livello = **121×57 tile MSX**.
 I livelli di Icarous sono **193×90** (`tileSize: 8`): scala ~1,6, la stessa usata da Vitto per i livelli 1-12
 (verificato: i muri dei suoi livelli 11 e 12 coincidono con quelli estratti, a meno di 1 tile di arrotondamento).
 
@@ -51,7 +51,7 @@ aperto e va messa la porta con `L.door(...)`.
 | frecce azzurre con scritta OPEN (a volte scritta grigia) | `OPEN` (4) |
 | frecce bianche con scritta CLOSE | `CLOSE` (5) |
 | frecce verdi ⇕ / ⇔ o pallini blu sopra un muro o in un varco | `DOOR` (6) |
-| omino azzurro accanto al riquadro "LEVEL NN" | `THES` (9) partenza |
+| omino azzurro accanto al riquadro "LEVEL NN" | `ICAROUS` (9) partenza |
 | ragazza gialla | `WOMAN` (3) |
 | chiave gialla | `KEY` (10) |
 | quadratino vuoto (giallo, rosso, blu...) | nemico `ENH` (11) |
@@ -110,7 +110,7 @@ vasche) perché il percorso partenza → chiave → ragazza abbia senso. Proponi
 **Situazione:** non esiste. Mappa: `docs/mappe/originale/livello13.png`. Forma **non rettangolare**: in alto al centro
 e in basso a sinistra ci sono zone fuori mappa (`disegna_msx` le riempie di muro).
 **Punti fissi (coordinate MSX → Icarous):**
-- Partenza Theseus: in alto al centro, accanto al riquadro "LEVEL 13", MSX ~(51,10) → ~(82,16).
+- Partenza Icarous: in alto al centro, accanto al riquadro "LEVEL 13", MSX ~(51,10) → ~(82,16).
   Il riquadro "LEVEL 13" è solo un'etichetta (nel `--scala` esce come icona 8×3 bianca: non è un oggetto).
 - Chiave: in alto a sinistra, MSX (4,3) → (6,5).
 - Ragazza: in basso a sinistra, MSX (4,53) → (6,84). Sotto la mappa c'è il cuore e la frase finale

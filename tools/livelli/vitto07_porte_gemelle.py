@@ -35,7 +35,7 @@ L.put(17, 12, 2, 2, CLOSE, 'A')              # sul tetto della gabbia, ben visib
 L.put(27, 6, 2, 2, STAR)                     # in alto sopra il corridoio prima della gabbia
 
 # ================= SALA: partenza, checkpoint, timer, botola A =================
-L.put(57, 20, 3, 3, THES)
+L.put(57, 20, 3, 3, ICAROUS)
 L.door(36, 23, 7, 1, 'A')                    # botola A nel pavimento: giù verso la chiave
 L.hline(12, 46, 54)                          # mensola centrale
 L.put(49, 9, 3, 3, TIMER)                    # sulla mensola: da tenere per chi deve passare l'ala ovest infestata

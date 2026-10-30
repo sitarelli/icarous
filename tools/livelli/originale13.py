@@ -1,5 +1,5 @@
 """Originale 13: ricostruito dalla mappa MSX (docs/mappe/originale/livello13.png) e dal video walkthrough
-"Theseus (MSX) [480p].mp4" (livello 13 da 22:04 a 27:45).
+"walkthrough MSX [480p].mp4" (livello 13 da 22:04 a 27:45).
 
 Dal video: partenza a MSX (29,10) e non accanto alla scritta LEVEL 13; porte = tratti interi di muro fra due pilastri;
 i 4 OPEN della stanza lunga aprono il pavimento sopra la propria vasca; la riga 24 colonne 105-107 è libera.
@@ -70,8 +70,8 @@ ent(82, 18, OPEN, group='F')
 ent(12, 37, OPEN, group='H'); ent(20, 38, OPEN, group='I')
 ent(28, 37, OPEN, group='J'); ent(37, 38, OPEN, group='K')
 
-# Theseus appoggiato sul muro della riga 12, come nel video (MSX 29,10), sotto una nicchia cieca
-L.put(_sx(28), _sy(12) - 3, 3, 3, THES)
+# Icarous appoggiato sul muro della riga 12, come nel video (MSX 29,10), sotto una nicchia cieca
+L.put(_sx(28), _sy(12) - 3, 3, 3, ICAROUS)
 ent(4, 3, KEY)
 ent(4, 53, WOMAN)
 ent(4, 13, BULB)

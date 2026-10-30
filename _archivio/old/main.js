@@ -40,7 +40,7 @@ const sprites = {};
 let loadedImages = 0;
 const imagesToLoad = [
     { name: 'brick', src: 'png/brick.png' },
-    { name: 'thes', src: 'png/thes.png' },
+    { name: 'icarous', src: 'png/icarous.png' },
     { name: 'woman', src: 'png/woman.png' },
     { name: 'enemyH', src: 'png/enemyh.png' },
     { name: 'enemyV', src: 'png/enemyv.png' },
@@ -53,7 +53,7 @@ const imagesToLoad = [
     { name: 'key', src: 'png/key.png' },
     { name: 'timer', src: 'png/timer.png' },
     { name: 'door', src: 'png/door.png' },
-    { name: 'thes_die', src: 'png/thes_die.png' },
+    { name: 'icarous_die', src: 'png/icarous_die.png' },
     { name: 'unchained', src: 'png/unchained.png' }
 ];
 
@@ -79,8 +79,8 @@ function aud(name) {
 const audioDefinitions = {
     doorOpen:   { src: aud('dooropen'),    volume: 0.6 },
     doorClose:  { src: aud('doorclose'),   volume: 0.6 },
-    walk:       { src: aud('walkingthes'), volume: 0.4, loop: true },
-    fly:        { src: aud('flyingthes'),  volume: 0.5, loop: true },
+    walk:       { src: aud('walking'), volume: 0.4, loop: true },
+    fly:        { src: aud('flying'),  volume: 0.5, loop: true },
     levelup:    { src: aud('levelup'),     volume: 0.8 },
     beginLevel: { src: aud('beginlevel'),  volume: 0.7 },
     keyPickup:  { src: aud('key'),         volume: 0.6 },

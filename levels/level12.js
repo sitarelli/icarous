@@ -1,4 +1,4 @@
-/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
+/* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Icarous 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
 /* ORIGINALE 12 - generato da tools/livelli/originale12.py (muri dalla mappa MSX, porte dal walkthrough) */
 /* A: tetto della stanza delle vasche (trappola). B: tetto della stanza di mezzo (CLOSE e OPEN dentro). C: tetto della stanza in fondo. D: varco del labirinto di destra (OPEN sul fondo della stanza C). */
 loadLevelData({

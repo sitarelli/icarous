@@ -4,14 +4,14 @@
 > Messaggio da incollare: **"Leggi docs/VITTO_LEVELS_PROGETTO.md e segui le istruzioni."**
 
 ## Il tuo compito
-Sei il game designer della campagna **Vitto Levels** di Icarous (remake del Theseus per MSX).
+Sei il game designer della campagna **Vitto Levels** di Icarous (remake di un classico MSX).
 Devi progettare **10 livelli** con una mini-trama, un'idea forte per ogni livello e una difficoltà che cresce,
 e scrivere il risultato in **`docs/VITTO_LEVELS_PIANO.md`**. NON costruisci i livelli: ogni livello verrà
 costruito dopo, in una chat separata, partendo dalla tua scheda. Quindi le schede devono essere
 **abbastanza precise da poter essere costruite senza di te**.
 
 Prima di scrivere leggi:
-1. `docs/THESEUS_LEVEL_DESIGN.md` — regole del motore e vincoli **obbligatori** (varchi ≥ 6, vasche a regola, ecc.).
+1. `docs/ICAROUS_LEVEL_DESIGN.md` — regole del motore e vincoli **obbligatori** (varchi ≥ 6, vasche a regola, ecc.).
 2. `tools/livelli/vitto01_nove_stanze.py` — com'è fatto il livello 01, che **esiste già** e va inserito nella trama
    così com'è (difficoltà media, griglia 3×3 di stanze, rebus A → C → B).
 3. `README.md` — struttura del progetto.
@@ -20,7 +20,7 @@ Lavora in italiano. Prima di scrivere il file proponi a Vitto in chat la trama e
 ciascuno (una riga l'uno), aspetta il suo ok o le correzioni, poi scrivi il documento completo.
 
 ## Cosa sa fare il motore (usa solo questo)
-- **Theseus** cade sempre e vola dando spinta. Se sbatte la testa sul soffitto **perde il volo finché non atterra**:
+- **Icarous** cade sempre e vola dando spinta. Se sbatte la testa sul soffitto **perde il volo finché non atterra**:
   soffitti bassi = trappole e ritmo.
 - **Obiettivo**: prendere la **chiave** e toccare la **ragazza**. Una chiave e una ragazza per livello.
   Il radar indica prima la chiave e poi la ragazza, in linea d'aria: si può "ingannare" il giocatore con
@@ -53,7 +53,7 @@ essere costruibile e giocabile **con il motore attuale**.
   Più grande non vuol dire più difficile: conta il rebus.
 
 ## Formato di `docs/VITTO_LEVELS_PIANO.md`
-1. **La trama** (10–15 righe): chi è Theseus, chi è la ragazza, perché la grotta, come finisce al livello 10.
+1. **La trama** (10–15 righe): chi è Icarous, chi è la ragazza, perché la grotta, come finisce al livello 10.
 2. **Tabella riassuntiva**: n°, titolo, trucco principale, difficoltà 1–10, dimensioni, sfondo.
 3. **Una scheda per livello** (01 compresa, descritta così com'è), sempre con queste voci:
    - **Titolo** e **intro** (la riga che compare a schermo).

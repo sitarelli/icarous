@@ -39,7 +39,7 @@ L.hline(7, 60, 66)    # R02: mensola con la chiave
 L.hline(8, 4, 10)     # R00: mensola della ragazza
 
 # --- R20 (partenza) ---
-L.put(3, 42, 3, 3, THES)
+L.put(3, 42, 3, 3, ICAROUS)
 L.put(16, 37, 2, 2, STAR)
 # --- R21 ---
 L.put(34, 38, 2, 2, STAR)        # stella rischiosa sopra la lava

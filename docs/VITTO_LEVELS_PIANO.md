@@ -8,14 +8,14 @@
 
 ## 1. La trama
 
-Theseus si è legato alla schiena le **ali di cera di Dedalo**. Con quelle vola (la spinta), e la cera che si
+Icarous si è legato alla schiena le **ali di cera di Dedalo**. Con quelle vola (la spinta), e la cera che si
 consuma è la sua **energia**: più vola e più si scalda, più la cera cede.
 **Arianna** è stata trascinata nel Labirinto, che sotto Creta è sprofondato in una grotta vulcanica,
 buia e piena di lava. A tenerla prigioniera ci sono i **Guardiani del Minotauro**: sono i nemici.
 Il **radar** è il filo di Arianna: indica prima la chiave della sua catena, poi lei. Ma il filo segue la linea
 d'aria, non la strada, e il Labirinto ama ingannare chi lo segue alla cieca.
 
-A ogni livello Theseus trova la chiave e libera Arianna, ma la grotta si muove e i Guardiani la trascinano
+A ogni livello Icarous trova la chiave e libera Arianna, ma la grotta si muove e i Guardiani la trascinano
 **più giù**. Per nove livelli si scende: più lava, più buio, più porte, fino al **Cuore del Vulcano** (09),
 dove Arianna è incatenata su un lago di lava.
 Al **livello 10** il Labirinto comincia a crollare e per la prima volta si **risale**: un camino verticale verso
@@ -65,7 +65,7 @@ Gli sfondi sono assegnati in sequenza: Vitto può cambiarli dopo averli visti in
 - **CLOSE per ogni gruppo di porte** (trappola sul percorso o "ponte" sopra la lava): anche se la scheda non li cita,
   vanno aggiunti (vedi `docs/COME_CREARE_UN_LIVELLO.md`). Il validatore controlla che nessun CLOSE blocchi il giocatore.
 - **Fuoco fatuo** (tile 17, `WISP`, negli schemi `FF`): da 03 in poi c'è sempre, uno per livello, in aggiunta ai nemici
-  della scheda. Compare con animazione e risata quando Theseus si avvicina, poi vaga e rimbalza sui muri
+  della scheda. Compare con animazione e risata quando Icarous si avvicina, poi vaga e rimbalza sui muri
   (vedi `docs/COME_CREARE_UN_LIVELLO.md`).
 
 ---
@@ -539,7 +539,7 @@ Gli sfondi sono assegnati in sequenza: Vitto può cambiarli dopo averli visti in
 
 ## 4. Idee che richiedono codice (per il futuro)
 
-1. **Arianna che ti segue** — nel livello 10, una volta liberata, la ragazza vola dietro a Theseus fino all'uscita
+1. **Arianna che ti segue** — nel livello 10, una volta liberata, la ragazza vola dietro a Icarous fino all'uscita
    (come un secondo sprite che ripete il suo percorso con mezzo secondo di ritardo). Il finale diventerebbe davvero
    "volare via insieme". Serve: stato "liberata" senza fine livello + tile "uscita".
 2. **Correnti d'aria calda** — colonne sopra le fumarole che spingono verso l'alto senza consumare spinta

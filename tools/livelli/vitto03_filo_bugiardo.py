@@ -39,7 +39,7 @@ L.tub(39, 45, 28, 29)    # R11: fra la porta B e la chiave, si sorvola all'andat
 # --- mensole ---
 L.hline(6, 34, 47)    # R01: balcone dell'alcova (3 tile fuori dalla porta C per atterrare), sotto restano 8 tile
 L.hline(23, 14, 21)   # R10: appoggio a metà salita, sotto il varco verso R00 (non sopra il varco da R20)
-L.hline(23, 51, 56)   # R12: mensola dell'OPEN B, lontana dalla botola A
+L.hline(23, 55, 57)   # R12: mensola dell'OPEN B, corta: non copre il CLOSE B (scendendo a sinistra si atterra accanto)
 
 # --- R21 (partenza): la chiave è 10 tile più su, dietro il soffitto ---
 L.put(34, 39, 3, 3, THES)
@@ -60,15 +60,15 @@ L.put(27, 7, 2, 2, ENX)          # righe 7-8: sopra la quota della porta A e del
 L.put(51, 13, 2, 2, FLAG)
 L.put(54, 12, 3, 3, BULB)
 # --- R12 (OPEN B) ---
-L.put(53, 21, 2, 2, OPEN, 'B')
-L.put(56, 18, 2, 2, ENS)         # accanto all'OPEN B, sopra la punta della mensola
+L.put(55, 21, 2, 2, OPEN, 'B')
+L.put(55, 17, 2, 2, ENS)         # sopra l'OPEN B: per prenderlo si arriva di lato, dal varco
 # --- R11 (stanza della chiave, sigillata salvo la porta B) ---
 L.put(35, 28, 2, 2, KEY)         # sopra la partenza
 L.put(28, 28, 2, 2, OPEN, 'C')
 
 # --- CLOSE: uno per gruppo ---
 L.put(44, 13, 2, 2, CLOSE, 'A')   # R01, davanti alla porta A: calpestato la richiude (si torna fino a R00!)
-L.put(51, 28, 2, 2, CLOSE, 'B')   # R12, davanti alla porta B: calpestato la richiude (l'OPEN B è lì sopra)
+L.put(50, 28, 2, 2, CLOSE, 'B')   # R12, davanti alla porta B: calpestato la richiude; sopra è aperto, si scavalca in volo
 L.put(66, 13, 2, 2, CLOSE, 'C')   # R02, oltre il buco verso R12: al ritorno, se atterri lì richiudi l'alcova
 
 # --- fuoco fatuo: si materializza in R02 quando Theseus arriva al checkpoint (entro 14 tile),

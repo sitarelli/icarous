@@ -4,3 +4,7 @@ __pycache__/
 
 # video di riferimento MSX (troppo grande per GitHub)
 *.mp4
+
+# mappe ufficiali MSX (restano solo in locale)
+docs/mappe/
+docs/mappetheseus.png

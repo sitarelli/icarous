@@ -66,8 +66,13 @@ L.put(56, 18, 2, 2, ENS)         # accanto all'OPEN B, sopra la punta della mens
 L.put(35, 28, 2, 2, KEY)         # sopra la partenza
 L.put(28, 28, 2, 2, OPEN, 'C')
 
+# --- CLOSE: uno per gruppo ---
+L.put(44, 13, 2, 2, CLOSE, 'A')   # R01, davanti alla porta A: calpestato la richiude (si torna fino a R00!)
+L.put(51, 28, 2, 2, CLOSE, 'B')   # R12, davanti alla porta B: calpestato la richiude (l'OPEN B è lì sopra)
+L.put(66, 13, 2, 2, CLOSE, 'C')   # R02, oltre il buco verso R12: al ritorno, se atterri lì richiudi l'alcova
+
 # --- fuoco fatuo: si materializza in R02 quando Theseus arriva al checkpoint (entro 14 tile),
-#     poi vaga ovunque attraversando i muri: insegue la seconda metà dell'anello ---
+#     poi ti insegue rimbalzando sui muri lungo la seconda metà dell'anello ---
 L.put(62, 4, 2, 2, WISP)
 
 L.check()
@@ -79,5 +84,6 @@ L.save('vitto-03-filo-bugiardo.js',
                'La chiave è sopra la partenza ma si raggiunge solo facendo tutto l\'anello in senso orario.\n'
                'Soluzione: R20 -> R10 -> R00: OPEN A -> R01 (ragazza dietro la porta C) -> porta A -> R02 (checkpoint) -> '
                'R12: OPEN B -> porta B -> R11: chiave + OPEN C -> ritorno R12 -> R02 -> R01 -> porta C -> ragazza.\n'
-               'Tre vasche di lava (R20, R01, R11) e un fuoco fatuo che compare in R02 e poi vaga attraversando i muri.',
+               'Tre vasche di lava (R20, R01, R11) e un fuoco fatuo che compare in R02 e poi vaga rimbalzando sui muri.\n'
+               'CLOSE A, B e C sono trappole da scavalcare: richiudono la porta che si sta per attraversare.',
        note='Difficoltà 5: il radar inganna, anello orario A → B → C, 3 vasche di lava e il fuoco fatuo.')

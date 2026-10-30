@@ -50,6 +50,19 @@ Tutti fanno lo stesso danno al contatto (−0,25 di energia, poi 2 s di invulner
   mettilo in una stanza con varchi verso il percorso, non in una stanza chiusa da porte (altrimenti resta lì dentro).
   Lascia attorno al blocco almeno 3 tile liberi. Il validatore segnala ATTENZIONE se manca.
 
+## Regola fissa: un CLOSE per ogni gruppo di porte
+Vitto vuole che **ogni gruppo di porte abbia anche il suo CLOSE** (il validatore dà ATTENZIONE se manca). Due usi:
+- **Trappola (handicap):** il CLOSE sta sul percorso, di solito proprio davanti alla porta che si sta per attraversare.
+  Chi ci cammina sopra la richiude e deve tornare all'OPEN; chi è attento lo scavalca in volo. Più è lontano l'OPEN,
+  più la trappola è cattiva: dosala con la difficoltà del livello.
+- **Ponte (necessità):** una porta orizzontale dello stesso gruppo messa **sopra una vasca di lava**, a filo con le
+  sponde (es. `L.door(x0, riga_sopra_la_lava, larghezza, 1, 'C')`). Aprendo il gruppo il ponte sparisce; il CLOSE lo
+  rimette e si passa a piedi senza scottarsi (poi, se serve, si riapre con l'OPEN). Esempi: livello 01 (ponte B in R01),
+  livello 02 (ponte C sotto la botola B).
+- **Anti-blocco:** il validatore prova tutte le combinazioni di OPEN e CLOSE e dà **ERRORE "TRAPPOLA SENZA USCITA"**
+  se un CLOSE può chiudere il giocatore dove l'OPEN non è più raggiungibile. Mai un CLOSE dentro una stanza che ha
+  come uscita solo la porta che chiude, a meno di mettere lì dentro anche un OPEN dello stesso gruppo.
+
 ## Errori tipici da evitare (già successi)
 - Nemico orizzontale alla stessa altezza di una porta: quando la porta si apre scappa nelle altre stanze
   (il validatore lo segnala come ATTENZIONE).

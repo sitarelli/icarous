@@ -102,6 +102,7 @@ class Level:
         for t in (THES, KEY, WOMAN):
             if len(by(t)) != 1: E.append(f"{NAMES[t]}: {len(by(t))} blocchi (ne serve esattamente 1)")
         thes = by(THES)[0] if by(THES) else None
+        self._thes = thes
         if thes and (thes['w'], thes['h']) != (3, 3): W.append(f"Theseus è {thes['w']}×{thes['h']}: usa 3×3")
         if not by(FLAG): W.append('nessun cagnolino: il livello non ha checkpoint')
         # da Vitto Levels 03 in poi ogni livello ha il suo fuoco fatuo (entra da fuori, vaga e passa i muri)
@@ -181,6 +182,13 @@ class Level:
                         if ns not in states: states[ns] = states[st] + [b['g']]; q.append(ns)
             if self.solution is None:
                 E.append('NON RISOLVIBILE: chiave o ragazza irraggiungibili (passaggi stretti per un 3×3 o porte bloccate)')
+            else:
+                self._check_traps(pw, ph, key, woman, by, E)
+
+        # Vitto vuole un CLOSE per ogni gruppo di porte (trappola o "ponte")
+        closes = {b['g'] for b in by(CLOSE)}
+        for grp in sorted({b['g'] for b in by(DOOR)}):
+            if grp not in closes: W.append(f'porta del gruppo {grp} senza CLOSE')
 
         walls = sum(1 for r in g for c in r if T(c) == WALL) / (cols * rows)
         if walls > 0.2: W.append(f'densità muri {walls:.0%}: stanze troppo piene?')
@@ -196,6 +204,72 @@ class Level:
         print('CONTROLLO OK' if not E else 'CI SONO ERRORI')
         if E and stop_on_error: sys.exit(1)
         return not E
+
+    def _check_traps(self, pw, ph, key, woman, by, E):
+        """Anti-blocco con i CLOSE: esplora tutti gli stati (porte aperte, chiave presa, dove si trova Theseus)
+        premendo OPEN e CLOSE in qualsiasi ordine. Se da uno stato raggiungibile non si può più vincere,
+        un CLOSE può chiudere il giocatore in trappola per sempre: è un ERRORE."""
+        g, cols, rows = self.g, self.cols, self.rows
+        def ok(x, y, open_groups):
+            if x < 1 or y < 1 or x + pw >= cols or y + ph >= rows: return False
+            for j in range(ph):
+                for i in range(pw):
+                    c = g[y + j][x + i]
+                    if T(c) == WALL or (T(c) == DOOR and G(c) not in open_groups): return False
+            return True
+        cache = {}
+        def region(open_groups, pos):
+            for reg in cache.get(open_groups, []):
+                if pos in reg: return reg
+            seen, q = {pos}, deque([pos])
+            while q:
+                x, y = q.popleft()
+                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    n = (x + dx, y + dy)
+                    if n not in seen and ok(*n, open_groups): seen.add(n); q.append(n)
+            reg = frozenset(seen)
+            cache.setdefault(open_groups, []).append(reg)
+            return reg
+        def touch_pos(reg, b):
+            for px in range(b['x'] - pw + 1, b['x'] + b['w']):
+                for py in range(b['y'] - ph + 1, b['y'] + b['h']):
+                    if (px, py) in reg: return (px, py)
+            return None
+        switches = [(b, True) for b in by(OPEN)] + [(b, False) for b in by(CLOSE)]
+        start_pos = (self._thes['x'], self._thes['y'])
+        start = (frozenset(), False, region(frozenset(), start_pos))
+        states, edges, q = {start: None}, {}, deque([start])
+        while q:
+            st = q.popleft()
+            opn, has_key, reg = st
+            nexts = []
+            if not has_key and touch_pos(reg, key): nexts.append(((opn, True, reg), 'chiave'))
+            for b, is_open in switches:
+                p = touch_pos(reg, b)
+                if not p: continue
+                ns = opn | {b['g']} if is_open else opn - {b['g']}
+                if ns == opn: continue
+                # il giocatore resta dov'era il pulsante: se la porta si chiude davanti, è dall'altra parte
+                stays = p if ok(*p, ns) else None
+                if stays is None: continue
+                nexts.append(((ns, has_key, region(ns, stays)), ('OPEN ' if is_open else 'CLOSE ') + b['g']))
+            edges[st] = nexts
+            for ns, label in nexts:
+                if ns not in states: states[ns] = (st, label); q.append(ns)
+        win = {s for s in states if s[1] and touch_pos(s[2], woman)}
+        can_win, changed = set(win), True
+        while changed:
+            changed = False
+            for s, nexts in edges.items():
+                if s not in can_win and any(n in can_win for n, _ in nexts):
+                    can_win.add(s); changed = True
+        stuck = [s for s in states if s not in can_win]
+        if stuck:
+            s = min(stuck, key=lambda s: len(s[0]))
+            path = []
+            while states[s]: s, label = states[s]; path.append(label)
+            E.append('TRAPPOLA SENZA USCITA: premendo ' + ' -> '.join(reversed(path)) + ' il giocatore resta bloccato')
+        self.trap_states = len(states)
 
     # ------------------------------------------------------------------ salvataggio
     def to_js(self, name='', intro='', background=None, comment=''):

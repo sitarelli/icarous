@@ -24,6 +24,7 @@ L.door(48, 39, 1, 6, 'A')   # R21 -> R22
 L.door(50, 15, 6, 1, 'B')   # R12 -> R02 (botola nel soffitto)
 L.door(48, 24, 1, 6, 'C')   # R12 <-> R11 (scorciatoia)
 L.door(24, 24, 1, 6, 'C')   # R11 -> R10 (sacca cieca)
+L.door(30, 12, 13, 1, 'B')  # R01: ponte sopra la lava (stesso gruppo della botola B: aprendo B il ponte sparisce)
 
 # --- vasche di lava ---
 L.tub(30, 40, 43, 44)    # R21, sul pavimento esterno
@@ -69,6 +70,10 @@ L.put(51, 3, 3, 3, BULB)
 # --- R01 (lava + timer) ---
 L.put(44, 12, 3, 3, TIMER)
 L.put(31, 6, 2, 2, ENX)
+# --- CLOSE: uno per gruppo ---
+L.put(44, 43, 2, 2, CLOSE, 'A')   # R21, davanti alla porta A: chi ci cammina sopra la richiude (va saltato in volo)
+L.put(33, 28, 2, 2, CLOSE, 'C')   # R11, sul pavimento fra le due porte C: se lo calpesti torni a prendere l'OPEN C
+L.put(58, 13, 2, 2, CLOSE, 'B')   # R02: richiude la botola e rimette il ponte sulla lava di R01 (comodo per tornare)
 # --- R00 (ragazza) ---
 L.put(6, 5, 3, 3, WOMAN)
 L.put(15, 3, 2, 2, STAR)
@@ -79,5 +84,6 @@ L.save('vitto-01-nove-stanze.js',
        intro='Arianna è prigioniera nel Labirinto: segui il filo e trova la chiave della catena.',
        background=4,
        comment='VITTO LEVELS 01 "Le Nove Stanze" - generato da tools/livelli/vitto01_nove_stanze.py\n'
-               'Soluzione: OPEN A -> porta A -> checkpoint -> OPEN C -> scorciatoia C -> OPEN B (sacca) -> porta B -> chiave -> lava + timer -> ragazza.',
+               'Soluzione: OPEN A -> porta A -> checkpoint -> OPEN C -> scorciatoia C -> OPEN B (sacca) -> porta B -> chiave -> lava + timer -> ragazza.\n'
+               'CLOSE: A e C sono trappole da saltare; CLOSE B in R02 rimette il ponte (gruppo B) sopra la lava di R01.',
        note='Difficoltà media, rebus A → C → B, checkpoint a metà.')

@@ -142,7 +142,7 @@
             <button type="button" data-camp="vitto">NEW LEVELS<small id="n-vitto"></small></button>
         </div>
         <div id="level-list"></div>
-        <p class="small"><b>nel gioco</b> = già promosso · <b style="color:var(--warn)">da approvare</b> = solo file di prova in levels/test/</p>
+        <p class="small"><b>nel gioco</b> = già promosso · <b style="color:var(--warn)">da approvare</b> = file di prova in levels/test/, non ancora nel gioco</p>
     </div>
 
     <div class="card">
@@ -165,7 +165,7 @@
         <span id="current">Nessun livello caricato</span>
         <span><button class="action secondary" id="btn-reload" type="button" style="width:auto;margin:0">Ricarica</button> &nbsp; <a href="index.html">Vai al gioco vero →</a></span>
     </div>
-    <iframe id="game" title="Icarous - laboratorio" allow="fullscreen; gamepad"></iframe>
+    <iframe id="game" title="Icarous - laboratorio" allow="fullscreen; gamepad; autoplay"></iframe>
 </main>
 
 <script src="levels/test/elenco.js"></script>
@@ -190,8 +190,8 @@ function playText(text, label) {
 }
 
 /* ---------- elenco: due schede, CLASSIC e NEW LEVELS ----------
-   Per ogni numero di livello della campagna: il file di prova di levels/test/ se c'è (originale-NN.js / vitto-NN.js),
-   altrimenti il livello ufficiale. I livelli oltre "count" di config.js sono quelli ancora da approvare. */
+   I livelli già nel gioco (fino a "count" di config.js) si aprono dal file ufficiale, così si prova esattamente
+   quello che si gioca; quelli oltre "count" dal file di prova di levels/test/ (originale-NN.js / vitto-NN.js). */
 const list = $('level-list');
 // gli script vitto-NN usano il numero della scheda: le schede 01 e 04 sono state scambiate nella campagna
 const SCHEDA_TO_LEVEL = { 1: 4, 4: 1 };
@@ -207,8 +207,8 @@ function buildCampaigns(CAMPAIGNS) {
             const m = lv.file.match(camp === 'originale' ? /^originale-(\d+)/ : /^vitto-(\d+)/);
             if (!m) return;
             const n = camp === 'vitto' ? (SCHEDA_TO_LEVEL[+m[1]] || +m[1]) : +m[1];
-            slots[n] = { n, src: `levels/test/${lv.file}`, name: lv.name, note: lv.note || lv.file,
-                         live: n <= CAMPAIGNS[camp].count };
+            if (slots[n]) Object.assign(slots[n], { name: lv.name, note: lv.note || lv.file });   // nel gioco: file ufficiale
+            else slots[n] = { n, src: `levels/test/${lv.file}`, name: lv.name, note: lv.note || lv.file, live: false };
         });
         campaigns[camp] = Object.values(slots).sort((a, b) => a.n - b.n);
         $('n-' + camp).textContent = campaigns[camp].length;

@@ -274,7 +274,25 @@ function updateLowPowerTick(dt) {
     }
 }
 
-const _oneShotThrottle = new WeakSet();
+// Safari fa suonare un elemento audio solo se è partito almeno una volta durante un clic o un tasto:
+// i suoni del gioco partono dal ciclo di gioco, quindi al primo gesto li "sblocchiamo" tutti (play + pausa
+// immediata) e poi suoniamo sempre quegli stessi elementi, mai copie nuove (che sarebbero di nuovo bloccate).
+const _unlockedAudio = new WeakSet();
+function unlockSounds() {
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    let pending = false;
+    Object.values(sfx).forEach(audio => {
+        if (!audio) { pending = true; return; }
+        if (_unlockedAudio.has(audio)) return;
+        _unlockedAudio.add(audio);
+        if (!audio.paused) return;           // sta già suonando: è già sbloccato
+        try { audio.play().catch(() => {}); audio.pause(); audio.currentTime = 0; } catch (e) {}
+    });
+    if (!pending) ['keydown', 'pointerdown', 'touchend'].forEach(ev => window.removeEventListener(ev, unlockSounds, true));
+}
+['keydown', 'pointerdown', 'touchend'].forEach(ev => window.addEventListener(ev, unlockSounds, true));
+
+const _oneShotThrottle = new Set();
 export function safePlayAudio(audio) {
     if (!audio || audio.readyState === 0) return;
     if (audio.loop) {
@@ -283,16 +301,15 @@ export function safePlayAudio(audio) {
     } else {
         if (_oneShotThrottle.has(audio)) return;
         _oneShotThrottle.add(audio);
-        const clone = audio.cloneNode();
-        clone.volume = audio.volume;
-        clone.addEventListener('ended',  () => _oneShotThrottle.delete(audio), { once: true });
-        clone.addEventListener('error',  () => _oneShotThrottle.delete(audio), { once: true });
-        clone.play().catch(() => { _oneShotThrottle.delete(audio); });
+        audio.onended = audio.onpause = audio.onerror = () => _oneShotThrottle.delete(audio);
+        try { audio.currentTime = 0; } catch (e) {}
+        audio.play().catch(() => { _oneShotThrottle.delete(audio); });
     }
 }
 
 export function stopAllSounds() {
     Object.values(sfx).forEach(audio => { if (audio) { try { audio.pause(); audio.currentTime = 0; } catch(e) {} } });
+    _oneShotThrottle.clear();
 }
 
 // --- ZOOM ---

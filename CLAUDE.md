@@ -7,6 +7,11 @@ Remake HTML5/JS (moduli ES6, nessuna build) del gioco MSX *Theseus*. Leggi `READ
 - **Vitto Levels**: `levels/vitto/levelN.js`, campagna nuova progettata da Vitto e Claude.
   Quanti livelli ha ciascuna versione: `CAMPAIGNS` in `config.js`.
 
+## Originale 11-13 e Theseus II
+- Livelli originali 11 (controllo), 12 (da completare), 13 (da creare): `docs/ORIGINALE_11_13.md` (una scheda per chat).
+  I muri si estraggono in automatico dalla mappa MSX con `tools/livelli/msx_mappa.py`; ritagli in `docs/mappe/originale/`.
+- Theseus II (6 piani, da fare più avanti): `docs/THESEUS2_PIANO.md`, ritagli in `docs/mappe/theseus2/`.
+
 ## Creare livelli
 - Regole del motore e del level design: `docs/THESEUS_LEVEL_DESIGN.md` (vincoli obbligatori).
 - Piano della campagna Vitto Levels: `docs/VITTO_LEVELS_PIANO.md` (se esiste) — brief per scriverlo: `docs/VITTO_LEVELS_PROGETTO.md`.

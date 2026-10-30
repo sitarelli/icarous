@@ -77,8 +77,8 @@ L.put(62, 4, 2, 2, WISP)
 
 L.check()
 L.save('vitto-03-filo-bugiardo.js',
-       name='Il Filo Bugiardo',
-       intro='Il filo dice che la chiave è lì, dietro il muro. Non dice da dove si passa.',
+       name="The Lying Thread",
+       intro="The thread says the key is right there, behind the wall. It doesn't say how to get through.",
        background=3,
        comment='VITTO LEVELS 03 "Il Filo Bugiardo" - generato da tools/livelli/vitto03_filo_bugiardo.py\n'
                'La chiave è sopra la partenza ma si raggiunge solo facendo tutto l\'anello in senso orario.\n'

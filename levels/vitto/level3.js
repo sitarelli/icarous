@@ -1,12 +1,12 @@
 /* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
-/* VITTO LEVELS 03 "Il Filo Bugiardo" - generato da tools/livelli/vitto03_filo_bugiardo.py */
+/* VITTO LEVELS 03 "The Lying Thread" - generato da tools/livelli/vitto03_filo_bugiardo.py */
 /* La chiave è sopra la partenza ma si raggiunge solo facendo tutto l'anello in senso orario. */
 /* Soluzione: R20 -> R10 -> R00: OPEN A -> R01 (ragazza dietro la porta C) -> porta A -> R02 (checkpoint) -> R12: OPEN B -> porta B -> R11: chiave + OPEN C -> ritorno R12 -> R02 -> R01 -> porta C -> ragazza. */
 /* Tre vasche di lava (R20, R01, R11) e un fuoco fatuo che compare in R02 e poi vaga rimbalzando sui muri. */
 /* CLOSE A, B e C sono trappole da scavalcare: richiudono la porta che si sta per attraversare. */
 loadLevelData({
-    name: "Il Filo Bugiardo",
-    intro: "Il filo dice che la chiave è lì, dietro il muro. Non dice da dove si passa.",
+    name: "The Lying Thread",
+    intro: "The thread says the key is right there, behind the wall. It doesn't say how to get through.",
     background: 3,
     tileSize: 9,
     cols: 72,

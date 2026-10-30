@@ -88,8 +88,8 @@ L.put(56, 15, 2, 2, WISP)
 
 L.check()
 L.save('vitto-04-ponti-di-porta.js',
-       name='Ponti di Porta',
-       intro='Fiumi di lava tagliano le gallerie. Ogni porta che apri fa crollare un ponte.',
+       name="Gate Bridges",
+       intro="Rivers of lava cut through the tunnels. Every door you open brings a bridge down.",
        background=5,
        comment='VITTO LEVELS 04 "Ponti di Porta" - generato da tools/livelli/vitto04_ponti_di_porta.py\n'
                'Tre fasce a serpentina, ognuna con un canale di lava il cui pavimento è un ponte-porta dello stesso gruppo '

@@ -149,7 +149,7 @@ function loadAllAudio(onProgress) {
 
 function updateProgress() {
     const debugInfo = document.getElementById('debug-info');
-    if (debugInfo && !audioReady) debugInfo.textContent = `Immagini: ${loadedImages}/${imagesToLoad.length}`;
+    if (debugInfo && !audioReady) debugInfo.textContent = `Images: ${loadedImages}/${imagesToLoad.length}`;
 }
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -236,6 +236,44 @@ export function playWispSound() {
     voice.start(t0); voice.stop(t0 + 1.1);
 }
 
+// Tic-tac dell'energia bassa: un colpetto secco di legno (tic acuto, tac più grave), sintetizzato
+let tickHigh = true;
+function playTick(urgency) {
+    const ac = getOrCreateAudioContext();
+    if (ac.state === 'suspended') return;
+    const now = ac.currentTime;
+    const osc = ac.createOscillator();
+    const bp = ac.createBiquadFilter();
+    const gain = ac.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(tickHigh ? 1650 : 1180, now);
+    osc.frequency.exponentialRampToValueAtTime(tickHigh ? 900 : 650, now + 0.04);
+    bp.type = 'bandpass'; bp.frequency.value = tickHigh ? 2200 : 1500; bp.Q.value = 6;
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.18 + urgency * 0.12, now + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+    osc.connect(bp); bp.connect(gain); gain.connect(ac.destination);
+    osc.start(now); osc.stop(now + 0.07);
+    tickHigh = !tickHigh;
+}
+
+// Sotto il 25% di energia (stessa soglia della vignetta rossa) parte il tic-tac: più l'energia cala, più accelera
+const LOW_POWER = 0.25;
+let tickTimer = 0;
+function updateLowPowerTick(dt) {
+    const ratio = gameState.power / gameState.maxPower;
+    if (ratio > LOW_POWER || ratio <= 0 || player.isDying || gameState.won || gameState.gameOver || gameState.god) {
+        tickTimer = 0;
+        return;
+    }
+    tickTimer -= dt;
+    if (tickTimer <= 0) {
+        const urgency = 1 - ratio / LOW_POWER;          // 0 appena sotto la soglia, 1 a energia zero
+        playTick(urgency);
+        tickTimer = 0.7 - urgency * 0.45;               // da 0,7 s a 0,25 s tra un colpo e l'altro
+    }
+}
+
 const _oneShotThrottle = new WeakSet();
 export function safePlayAudio(audio) {
     if (!audio || audio.readyState === 0) return;
@@ -313,9 +351,9 @@ export function loadLevel(n) {
     setCurrentLevelNumber(n);
     gameState.levelNumber = n;
     const num = String(n).padStart(2, '0');
-    gameState.levelTitle = getCampaign() === 'vitto' ? `VITTO LEVELS ${num}` : `LIVELLO ${num}`;
+    gameState.levelTitle = getCampaign() === 'vitto' ? `NEW LEVEL ${num}` : `LEVEL ${num}`;
     const src = `${camp().dir}/level${n}.js`;
-    loadLevelSrc(src, () => { alert(`Manca il file ${src}`); showMenu(); });
+    loadLevelSrc(src, () => { alert(`Missing file ${src}`); showMenu(); });
 }
 
 // Laboratorio: livello da levels/test/ oppure file caricato dal computer (test.html)
@@ -326,13 +364,13 @@ function loadLabLevel() {
     if (labSource === 'local') {
         let text = null;
         try { text = sessionStorage.getItem('icarous_lab_level'); } catch (e) {}
-        if (!text) { alert('Nessun livello caricato: torna su test.html e scegli un file.'); return; }
+        if (!text) { alert('No level loaded: go back to test.html and pick a file.'); return; }
         try { new Function(text)(); }
-        catch (e) { alert('Errore nel file del livello:\n' + e.message); }
+        catch (e) { alert('Error in the level file:\n' + e.message); }
     } else if (LAB_PATH.test(labSource)) {
-        loadLevelSrc(labSource, () => alert('File non trovato: ' + labSource));
+        loadLevelSrc(labSource, () => alert('File not found: ' + labSource));
     } else {
-        alert('Percorso non valido (deve stare in levels/test/): ' + labSource);
+        alert('Invalid path (must be inside levels/test/): ' + labSource);
     }
 }
 
@@ -466,9 +504,9 @@ function showFinalScreen() {
     gameState.paused = true;
     stopAllSounds();
     const total = $('final-score');
-    if (total) total.textContent = totalBestScore().toLocaleString('it-IT');
+    if (total) total.textContent = totalBestScore().toLocaleString('en-US');
     const title = $('final-title');
-    if (title) title.textContent = getCampaign() === 'vitto' ? 'VITTO LEVELS FINITI! (PER ORA)' : 'HAI FINITO ICAROUS!';
+    if (title) title.textContent = getCampaign() === 'vitto' ? 'NEW LEVELS COMPLETE! (FOR NOW)' : 'YOU BEAT ICAROUS!';
     showOverlay('final-overlay', true);
 }
 
@@ -492,7 +530,7 @@ function togglePause() {
 
 function refreshLightButton() {
     const b = $('btn-light');
-    if (b) b.textContent = `Luce dinamica: ${settings.lighting ? 'ON' : 'OFF'}`;
+    if (b) b.textContent = `Dynamic light: ${settings.lighting ? 'ON' : 'OFF'}`;
 }
 
 /* ===================== GAME LOOP ===================== */
@@ -514,6 +552,7 @@ function loop(timestamp) {
             update(config.fixedTimeStep, hooks);
             accumulator -= config.fixedTimeStep;
         }
+        updateLowPowerTick(deltaTime);
         if (winTimer > 0) {
             winTimer -= deltaTime;
             if (winTimer <= 0) fadeThen(afterWin);
@@ -546,7 +585,7 @@ async function ensureAudio() {
     }
     if (audioReady) return;
     const debugInfo = $('debug-info');
-    if (debugInfo) debugInfo.textContent = 'Caricamento audio...';
+    if (debugInfo) debugInfo.textContent = 'Loading audio...';
     await loadAllAudio((done, total) => { if (debugInfo) debugInfo.textContent = `Audio: ${done}/${total}`; });
     audioReady = true;
     if (debugInfo) debugInfo.textContent = '';
@@ -574,18 +613,18 @@ function buildMenu() {
     const grid = $('level-grid');
 
     if (isLab) {
-        primary.textContent = 'GIOCA IL LIVELLO DI TEST';
+        primary.textContent = 'PLAY TEST LEVEL';
         primary.onclick = () => startFromMenu(0);
         newGame.style.display = 'none';
         pick.style.display = 'none';
-        $('menu-subtitle').textContent = 'Laboratorio livelli · G = invincibile';
+        $('menu-subtitle').textContent = 'Level lab · G = invincible';
         $('campaign-tabs').style.display = 'none';
         $('campaign-desc').style.display = 'none';
         $('campaign-tag').textContent = 'LAB';
         return;
     }
 
-    primary.textContent = unlocked > 1 ? `CONTINUA · LIVELLO ${String(unlocked).padStart(2, '0')}` : 'GIOCA';
+    primary.textContent = unlocked > 1 ? `CONTINUE · LEVEL ${String(unlocked).padStart(2, '0')}` : 'PLAY';
     primary.onclick = () => startFromMenu(unlocked);
     newGame.style.display = unlocked > 1 ? '' : 'none';
     newGame.onclick = () => startFromMenu(1);
@@ -597,14 +636,14 @@ function buildMenu() {
         b.className = 'level-btn';
         b.disabled = n > unlocked;
         const best = getBest(n);
-        b.innerHTML = `<span class="lv-num">${String(n).padStart(2, '0')}</span><span class="lv-best">${best ? best.score.toLocaleString('it-IT') : (n > unlocked ? '🔒' : '—')}</span>`;
+        b.innerHTML = `<span class="lv-num">${String(n).padStart(2, '0')}</span><span class="lv-best">${best ? best.score.toLocaleString('en-US') : (n > unlocked ? '🔒' : '—')}</span>`;
         b.onclick = () => startFromMenu(n);
         grid.appendChild(b);
     }
     const reset = document.createElement('button');
     reset.className = 'link-btn';
-    reset.textContent = 'Azzera progressi';
-    reset.onclick = () => { if (confirm(`Cancellare livelli sbloccati e record di ${c.name}?`)) { resetProgress(); buildMenu(); grid.classList.add('show'); } };
+    reset.textContent = 'Reset progress';
+    reset.onclick = () => { if (confirm(`Erase unlocked levels and best scores for ${c.name}?`)) { resetProgress(); buildMenu(); grid.classList.add('show'); } };
     grid.appendChild(reset);
 }
 
@@ -630,7 +669,7 @@ export function updateKeyHUD() {
         const el = document.querySelector('.key-indicator');
         if (el) {
             el.classList.toggle('has-key', hudKey);
-            el.innerHTML = `<img src="png/key.png" alt="Chiave" style="opacity:${hudKey ? 1 : 0.2}">`;
+            el.innerHTML = `<img src="png/key.png" alt="Key" style="opacity:${hudKey ? 1 : 0.2}">`;
         }
     }
     if (hudFlag !== gameState.hasFlag) {
@@ -638,7 +677,7 @@ export function updateKeyHUD() {
         const el = document.querySelector('.flag-indicator');
         if (el) {
             el.classList.toggle('has-flag', hudFlag);
-            el.title = hudFlag ? 'Checkpoint attivo' : 'Checkpoint non ancora preso';
+            el.title = hudFlag ? 'Checkpoint active' : 'Checkpoint not reached yet';
             el.innerHTML = `<img src="png/flag.png" alt="Checkpoint" style="opacity:${hudFlag ? 1 : 0.2}">`;
         }
     }
@@ -654,7 +693,7 @@ initInput(getOrCreateAudioContext, {
     onGodToggle: () => {
         if (!isLab || !gameRunning) return;
         gameState.god = !gameState.god;
-        addFloatText(player.x + player.w / 2, player.y, gameState.god ? 'INVINCIBILE' : 'NORMALE', '#ffffff');
+        addFloatText(player.x + player.w / 2, player.y, gameState.god ? 'INVINCIBLE' : 'NORMAL', '#ffffff');
     },
     onKill: () => {
         if (!isLab || !gameRunning || gameState.won) return;

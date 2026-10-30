@@ -6,16 +6,16 @@
 // Quando aggiungi un livello a una campagna, alza il suo "count".
 export const CAMPAIGNS = {
     originale: {
-        name: 'ORIGINALE',
+        name: 'CLASSIC',
         tag: '',
-        desc: 'I 12 livelli ricostruiti dal Theseus per MSX',
-        dir: 'levels',             // levels/level1.js ... level12.js
-        count: 12
+        desc: 'The 13 levels rebuilt from Theseus for MSX',
+        dir: 'levels',             // levels/level1.js ... level13.js
+        count: 13
     },
     vitto: {
-        name: 'VITTO LEVELS',
-        tag: 'VITTO LEVELS',
-        desc: 'Livelli nuovi, disegnati da Vitto e Claude',
+        name: 'NEW LEVELS',
+        tag: 'NEW LEVELS',
+        desc: 'Brand-new levels designed by Vitto and Claude',
         dir: 'levels/vitto',       // levels/vitto/level1.js ...
         count: 7
     }
@@ -91,7 +91,7 @@ export const gameState = {
     stars: 0,
     flags: 0,
     bulbs: 0,
-    statusMessage: "Caricamento...",
+    statusMessage: "Loading...",
     victoryTime: 0,
     checkpoint: null,   // { x, y, power } salvato toccando la bandiera
     levelTime: 0,       // secondi trascorsi nel livello

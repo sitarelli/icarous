@@ -21,7 +21,7 @@ Nel laboratorio: G = invincibile.
 | `renderer.js` | Disegno: sfondo, muri con bordi/ombre, luce dinamica, radar, effetti, cartellino punteggio |
 | `input.js` | Tastiera, joypad, joystick touch, fullscreen, orientamento |
 | `save.js` | Salvataggio progressi e record nel browser (localStorage), separati per versione |
-| `levels/levelN.js` | Versione **Originale**: i 12 livelli ricostruiti dall'MSX |
+| `levels/levelN.js` | Versione **Originale**: i 13 livelli ricostruiti dall'MSX |
 | `levels/vitto/levelN.js` | Versione **Vitto Levels**: livelli nuovi (il 1 è "Le Nove Stanze") |
 | `levels/test/` | Livelli di prova + `elenco.js` (lista mostrata in `test.html`) |
 | `test.html` | Laboratorio: prova livelli dall'elenco, incollati dall'editor o da file, con controllo automatico |
@@ -33,12 +33,12 @@ Nel laboratorio: G = invincibile.
 | `_archivio/` | Vecchie versioni e backup (non usati dal gioco, esclusi dall'APK) |
 
 ## Due versioni, stesso motore
-Nel menu si sceglie **ORIGINALE** (livelli 1-12 dell'MSX) oppure **VITTO LEVELS** (livelli nuovi).
+Nel menu si sceglie **CLASSIC** (livelli 1-13 dell'MSX) oppure **NEW LEVELS** (livelli nuovi, aperta di default al primo avvio). Tutte le scritte del gioco sono in inglese.
 Tutte le novità (checkpoint, radar, luce, punteggio) valgono per entrambe; progressi e record sono separati.
 
 ## Aggiungere un livello
 1. Provalo prima in `test.html` (incolla il codice dall'editor).
-2. Salvalo come `levels/vitto/level2.js` (Vitto Levels) oppure `levels/level13.js` (Originale).
+2. Salvalo come `levels/vitto/level2.js` (Vitto Levels) oppure `levels/level14.js` (Originale).
 3. In `config.js`, dentro `CAMPAIGNS`, alza il `count` della versione giusta.
 4. (Facoltativo) nel file aggiungi `name: "Titolo"` (compare a inizio livello) e `background: 4` (usa `jpg/sfondo4.jpg`).
 

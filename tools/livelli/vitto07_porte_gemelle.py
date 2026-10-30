@@ -67,8 +67,8 @@ L.put(90, 42, 3, 3, WOMAN)
 
 L.check()
 L.save('vitto-07-porte-gemelle.js',
-       name='Porte Gemelle',
-       intro="Ogni porta ha una gemella: quando ne apri una, guarda cosa esce dall'altra.",
+       name="Twin Doors",
+       intro="Every door has a twin: when you open one, watch what comes out of the other.",
        background=8,
        comment='VITTO LEVELS 07 "Porte Gemelle" - generato da tools/livelli/vitto07_porte_gemelle.py\n'
                'Gruppi condivisi: OPEN A (ala est) apre la botola della chiave e la gabbia dei due X nell ala ovest; '

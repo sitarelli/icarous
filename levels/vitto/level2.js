@@ -1,11 +1,11 @@
 /* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
-/* VITTO LEVELS 02 "Il Pozzo di Dedalo" - generato da tools/livelli/vitto02_pozzo_di_dedalo.py */
+/* VITTO LEVELS 02 "Daedalus' Well" - generato da tools/livelli/vitto02_pozzo_di_dedalo.py */
 /* Sotto ogni botola c'è una vasca: scendendo bisogna sterzare. */
 /* Soluzione: OPEN A (oltre la botola) -> giù da A -> OPEN B -> giù da B (checkpoint) -> OPEN C -> giù da C -> oltre le due vasche: OPEN D + chiave -> risalita C -> B -> porta D -> ragazza. */
 /* CLOSE: A, B e D sono trappole da scavalcare; CLOSE C al piano 3 richiude la botola C (andata) ma al ritorno rimette il ponte sopra la lava per risalire dalla botola B. */
 loadLevelData({
-    name: "Il Pozzo di Dedalo",
-    intro: "Arianna è sprofondata nel pozzo. Scendi: le botole reggono finché restano chiuse.",
+    name: "Daedalus' Well",
+    intro: "Ariadne has fallen into the well. Climb down: the trapdoors hold as long as they stay shut.",
     background: 2,
     tileSize: 9,
     cols: 60,

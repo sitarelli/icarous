@@ -1,7 +1,7 @@
 {
   "name": "Icarous",
   "short_name": "Icarous",
-  "description": "Remake del classico MSX Theseus: vola nella grotta, prendi la chiave, salva la ragazza.",
+  "description": "A remake of the MSX classic Theseus: fly through the cave, grab the key, free the girl.",
   "start_url": "./",
   "display": "fullscreen",
   "orientation": "landscape",

@@ -1,11 +1,11 @@
 /* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo 18=Fuoco fatuo blu */
-/* VITTO LEVELS 06 "Il Buio di Minosse" - generato da tools/livelli/vitto06_buio_di_minosse.py */
+/* VITTO LEVELS 06 "The Darkness of Minos" - generato da tools/livelli/vitto06_buio_di_minosse.py */
 /* Labirinto 5x4 al buio: le lampadine segnano la strada giusta, le stelle sono esche nei vicoli ciechi. */
 /* Due fuochi fatui: il rosso (r1c1) compare all andata, il blu (r1c2) solo dopo il rosso. */
 /* Soluzione: P -> pozzo c0 -> r1c0 -> r1c1 -> r0c1 -> r0c0 OPEN A -> ritorno a P -> r3c1 -> r3c2 -> r2c2 (checkpoint) -> r2c3 -> pozzo c3 -> porta A -> r0c4 chiave, OPEN B -> giu dal pozzo -> r3c3 -> porta B -> ragazza. */
 loadLevelData({
-    name: "Il Buio di Minosse",
-    intro: "Qui la luce non arriva. Segui le lampadine: sono le uniche amiche nel buio.",
+    name: "The Darkness of Minos",
+    intro: "No light ever reaches this place. Follow the bulbs: they're your only friends in the dark.",
     background: 7,
     tileSize: 9,
     cols: 110,

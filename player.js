@@ -908,7 +908,7 @@ export function update(dt, hooks) {
             if (item.type === 'key') {
                 gameState.hasKey = true;
                 safePlayAudio(sfx.keyPickup);
-                addFloatText(itemCenterX, item.y, 'CHIAVE!', '#FFD54A');
+                addFloatText(itemCenterX, item.y, 'KEY!', '#FFD54A');
             }
             else if (item.type === 'bulb') {
                 restorePower(0.5);

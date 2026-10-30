@@ -1155,10 +1155,10 @@ function drawLighting() {
 function currentTarget() {
     if (!gameState.hasKey) {
         const key = items.find(i => i.type === 'key' && !i.taken);
-        if (key) return { x: key.x + key.w / 2, y: key.y + key.h / 2, color: '#FFD54A', label: 'CHIAVE' };
+        if (key) return { x: key.x + key.w / 2, y: key.y + key.h / 2, color: '#FFD54A', label: 'KEY' };
     }
     const woman = decorations.find(d => d.type === 'woman');
-    if (woman) return { x: woman.x + woman.w / 2, y: woman.y + woman.h / 2, color: '#FF6FAE', label: 'RAGAZZA' };
+    if (woman) return { x: woman.x + woman.w / 2, y: woman.y + woman.h / 2, color: '#FF6FAE', label: 'GIRL' };
     return null;
 }
 
@@ -1367,13 +1367,13 @@ function drawTitleCard() {
         ctx.font = `${Math.round(vh * 0.13)}px ${FONT_TITLE}`;
         ctx.lineWidth = 6;
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
-        const title = isLab ? 'LABORATORIO' : (gameState.levelTitle || `LIVELLO ${String(gameState.levelNumber).padStart(2, '0')}`);
+        const title = isLab ? 'LAB' : (gameState.levelTitle || `LEVEL ${String(gameState.levelNumber).padStart(2, '0')}`);
         ctx.strokeText(title, vw / 2 + slide, vh * 0.2);   // in alto: al centro c'è Theseus
         ctx.fillStyle = '#ffffff';
         ctx.fillText(title, vw / 2 + slide, vh * 0.2);
         ctx.font = `500 ${Math.round(vh * 0.035)}px ${FONT_TEXT}`;
         ctx.lineWidth = 4;
-        const sub = gameState.levelName || 'Prendi la chiave · salva la ragazza';
+        const sub = gameState.levelName || 'Grab the key · free the girl';
         ctx.strokeText(sub, vw / 2 - slide, vh * 0.3);
         ctx.fillStyle = '#F89520';
         ctx.fillText(sub, vw / 2 - slide, vh * 0.3);
@@ -1450,15 +1450,15 @@ function drawScoreCard() {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
     ctx.font = `${Math.round(H * 0.11)}px ${FONT_TITLE}`;
-    ctx.fillText(isLab ? 'LIVELLO DI TEST SUPERATO' : 'LIVELLO COMPLETATO', vw / 2, y + H * 0.12);
+    ctx.fillText(isLab ? 'TEST LEVEL CLEARED' : 'LEVEL COMPLETE', vw / 2, y + H * 0.12);
 
     const rows = [
-        ['Tempo', fmtTime(r.time), `+${r.timeBonus}`],
-        ['Stelle', `× ${r.stars}`, `+${r.stars * 100}`],
-        ['Lampadine', `× ${r.bulbs}`, `+${r.bulbs * 50}`],
-        ['Cagnolino', r.flags ? 'preso' : '—', `+${r.flags * 250}`],
-        ['Energia residua', `${Math.round(r.power * 100)}%`, `+${Math.round(r.power * 1000)}`],
-        ['Ripartenze', `× ${r.deaths}`, r.deaths ? `-${r.deaths * 500}` : '0']
+        ['Time', fmtTime(r.time), `+${r.timeBonus}`],
+        ['Stars', `× ${r.stars}`, `+${r.stars * 100}`],
+        ['Bulbs', `× ${r.bulbs}`, `+${r.bulbs * 50}`],
+        ['Puppy', r.flags ? 'rescued' : '—', `+${r.flags * 250}`],
+        ['Energy left', `${Math.round(r.power * 100)}%`, `+${Math.round(r.power * 1000)}`],
+        ['Restarts', `× ${r.deaths}`, r.deaths ? `-${r.deaths * 500}` : '0']
     ];
     ctx.font = `500 ${Math.round(H * 0.048)}px ${FONT_TEXT}`;
     rows.forEach((row, i) => {
@@ -1483,14 +1483,14 @@ function drawScoreCard() {
         ctx.textAlign = 'center';
         ctx.fillStyle = '#F89520';
         ctx.font = `${Math.round(H * 0.13)}px ${FONT_TITLE}`;
-        ctx.fillText(shown.toLocaleString('it-IT'), vw / 2, y + H * 0.83);
+        ctx.fillText(shown.toLocaleString('en-US'), vw / 2, y + H * 0.83);
         ctx.font = `600 ${Math.round(H * 0.045)}px ${FONT_TEXT}`;
         if (r.isRecord && t > 165) {
             ctx.fillStyle = Math.floor(t / 12) % 2 ? '#FFE066' : '#ffffff';
-            ctx.fillText('NUOVO RECORD!', vw / 2, y + H * 0.94);
+            ctx.fillText('NEW RECORD!', vw / 2, y + H * 0.94);
         } else if (r.best) {
             ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.fillText(`Record: ${r.best.toLocaleString('it-IT')}`, vw / 2, y + H * 0.94);
+            ctx.fillText(`Best: ${r.best.toLocaleString('en-US')}`, vw / 2, y + H * 0.94);
         }
     }
     ctx.restore();
@@ -1558,6 +1558,8 @@ export function draw(gameRunning) {
     items.forEach(i => {
         if (i.taken) return;
         if (i.type === 'star') drawStarGlow(i);
+        // il cagnolino nel PNG ha 8 px vuoti sotto le zampe: lo abbassiamo per poggiarlo sul pavimento
+        else if (i.type === 'flag') drawImg(sprites.flag, i.x, i.y + i.h * 0.05, i.w / config.tileSize, i.h / config.tileSize);
         else drawImg(sprites[i.type], i.x, i.y, i.w / config.tileSize, i.h / config.tileSize);
     });
     decorations.forEach(d => {

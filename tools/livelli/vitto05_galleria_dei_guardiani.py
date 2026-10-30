@@ -92,8 +92,8 @@ L.put(100, 34, 2, 2, WISP)
 
 L.check()
 L.save('vitto-05-galleria-dei-guardiani.js',
-       name='La Galleria dei Guardiani',
-       intro='I Guardiani del Minotauro sorvegliano la galleria. Fermali, anche solo per un attimo.',
+       name="The Guardians' Gallery",
+       intro="The Minotaur's Guardians watch over the gallery. Stop them, even just for a moment.",
        background=6,
        comment='VITTO LEVELS 05 "La Galleria dei Guardiani" - generato da tools/livelli/vitto05_galleria_dei_guardiani.py\n'
                'Galleria di 90 tile piena di Guardiani da attraversare due volte: andata senza aiuti, al ritorno il timer sopra la botola A.\n'

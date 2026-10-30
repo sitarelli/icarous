@@ -7,5 +7,7 @@ window.TEST_LEVELS = [
     { file: "vitto-04-ponti-di-porta.js", name: "Ponti di Porta", author: "Vitto + Claude", note: "Difficoltà 5: CLOSE-ponte, tre canali di lava col soffitto basso, il terzo con la porta C doppia." },
     { file: "vitto-05-galleria-dei-guardiani.js", name: "La Galleria dei Guardiani", author: "Vitto + Claude", note: "Difficoltà 6: galleria lunga, andata a caldo e timer per il ritorno, ponte A sulla lava, CLOSE B trappola nella stanza della chiave." },
     { file: "vitto-06-buio-di-minosse.js", name: "Il Buio di Minosse", author: "Vitto + Claude", note: "Difficoltà 6: labirinto al buio, due fuochi fatui (rosso, poi blu), CLOSE A sospeso sopra il pozzo, CLOSE B da scavalcare al ritorno." },
-    { file: "vitto-07-porte-gemelle.js", name: "Porte Gemelle", author: "Vitto + Claude", note: "Difficoltà 7: porte gemelle, conta l'ordine (prima ovest). CLOSE A tentazione sulla gabbia, CLOSE B sotto l'OPEN A. Due fuochi fatui." }
+    { file: "vitto-07-porte-gemelle.js", name: "Porte Gemelle", author: "Vitto + Claude", note: "Difficoltà 7: porte gemelle, conta l'ordine (prima ovest). CLOSE A tentazione sulla gabbia, CLOSE B sotto l'OPEN A. Due fuochi fatui." },
+    { file: "originale-13.js", name: "LIVELLO 13", author: "Vitto + Claude", note: "Originale 13: porte dedotte dal video MSX" },
+    { file: "originale-12.js", name: "LIVELLO 12", author: "Vitto + Claude", note: "Originale 12 completato: botole sui tetti delle stanze centrali, labirinto di destra con la lampadina." }
 ];

@@ -10,7 +10,7 @@ const SAVE_KEY = 'icarous_save_v1';
 
 // Ogni campagna ha i suoi progressi: { [campagna]: { unlocked, best: { [livello]: { score, time } } } }
 const data = {
-    campaign: 'originale',
+    campaign: 'vitto',   // al primo avvio si apre NEW LEVELS
     campaigns: {},
     settings: {}
 };
@@ -24,7 +24,7 @@ function read() {
             if (saved.unlocked && !saved.campaigns) {
                 saved.campaigns = { originale: { unlocked: saved.unlocked, best: saved.best || {} } };
             }
-            Object.assign(data, { campaign: saved.campaign || 'originale', campaigns: saved.campaigns || {}, settings: saved.settings || {} });
+            Object.assign(data, { campaign: saved.campaign || 'vitto', campaigns: saved.campaigns || {}, settings: saved.settings || {} });
         }
     } catch (e) { /* storage non disponibile: si gioca senza salvataggi */ }
     Object.assign(settings, data.settings || {});

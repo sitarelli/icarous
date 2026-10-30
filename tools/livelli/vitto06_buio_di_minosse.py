@@ -96,8 +96,8 @@ L.put(102, 56, 3, 3, WOMAN)
 
 L.check()
 L.save('vitto-06-buio-di-minosse.js',
-       name='Il Buio di Minosse',
-       intro='Qui la luce non arriva. Segui le lampadine: sono le uniche amiche nel buio.',
+       name="The Darkness of Minos",
+       intro="No light ever reaches this place. Follow the bulbs: they're your only friends in the dark.",
        background=7,
        comment='VITTO LEVELS 06 "Il Buio di Minosse" - generato da tools/livelli/vitto06_buio_di_minosse.py\n'
                'Labirinto 5x4 al buio: le lampadine segnano la strada giusta, le stelle sono esche nei vicoli ciechi.\n'

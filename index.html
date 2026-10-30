@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Icarous</title>
-    <meta name="description" content="Icarous – remake del classico MSX Theseus: vola nella grotta, prendi la chiave, salva la ragazza.">
+    <meta name="description" content="Icarous – a remake of the MSX classic Theseus: fly through the cave, grab the key, free the girl.">
 
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -30,7 +30,7 @@
 <div id="rotate-message" class="rotate-overlay">
     <div class="rotate-content">
         <div class="rotate-icon">📱</div>
-        <p>Ruota il telefono in orizzontale.<br><br>Per il tutto schermo su iPhone:<br>Condividi → Aggiungi alla schermata Home<br>e lancia il gioco dall'icona.</p>
+        <p>Rotate your phone to landscape.<br><br>For full screen on iPhone:<br>Share → Add to Home Screen<br>and launch the game from the icon.</p>
     </div>
 </div>
 
@@ -40,26 +40,26 @@
         <div class="menu-title">ICAROUS</div>
         <div class="menu-subtitle" id="menu-subtitle">An MSX game Revival</div>
         <div class="campaign-tabs" id="campaign-tabs">
-            <button class="campaign-tab" data-campaign="originale" type="button">ORIGINALE</button>
-            <button class="campaign-tab" data-campaign="vitto" type="button">VITTO LEVELS</button>
+            <button class="campaign-tab" data-campaign="originale" type="button">CLASSIC</button>
+            <button class="campaign-tab" data-campaign="vitto" type="button">NEW LEVELS</button>
         </div>
         <div class="menu-hint" id="campaign-desc"></div>
-        <button class="btn btn-primary" id="btn-play" type="button">GIOCA</button>
-        <button class="btn" id="btn-new" type="button">NUOVA PARTITA</button>
-        <button class="btn" id="btn-levels" type="button">SCEGLI LIVELLO</button>
+        <button class="btn btn-primary" id="btn-play" type="button">PLAY</button>
+        <button class="btn" id="btn-new" type="button">NEW GAME</button>
+        <button class="btn" id="btn-levels" type="button">SELECT LEVEL</button>
         <div class="level-grid" id="level-grid"></div>
-        <div class="menu-hint">Frecce / WASD per muoverti · Spazio o W per volare · P per la pausa · joypad supportato</div>
-        <div class="menu-debug" id="debug-info">Caricamento...</div>
+        <div class="menu-hint">Arrows / WASD to move · Space or W to fly · P to pause · gamepad supported</div>
+        <div class="menu-debug" id="debug-info">Loading...</div>
     </div>
 </div>
 
 <!-- PAUSA -->
 <div id="pause-overlay" class="overlay">
     <div class="glass-panel small-panel">
-        <div class="panel-title">PAUSA</div>
-        <button class="btn btn-primary" id="btn-resume" type="button">RIPRENDI</button>
-        <button class="btn" id="btn-restart" type="button">RICOMINCIA LIVELLO</button>
-        <button class="btn" id="btn-light" type="button">Luce dinamica: ON</button>
+        <div class="panel-title">PAUSED</div>
+        <button class="btn btn-primary" id="btn-resume" type="button">RESUME</button>
+        <button class="btn" id="btn-restart" type="button">RESTART LEVEL</button>
+        <button class="btn" id="btn-light" type="button">Dynamic light: ON</button>
         <button class="btn btn-ghost" id="btn-pause-menu" type="button">MENU</button>
     </div>
 </div>
@@ -68,8 +68,8 @@
 <div id="game-over-overlay" class="overlay">
     <div class="glass-panel small-panel danger">
         <div class="panel-title">GAME OVER</div>
-        <button class="btn btn-primary" id="btn-checkpoint" type="button">RIPARTI DAL CHECKPOINT</button>
-        <button class="btn" id="btn-retry" type="button">RICOMINCIA LIVELLO</button>
+        <button class="btn btn-primary" id="btn-checkpoint" type="button">RESTART FROM CHECKPOINT</button>
+        <button class="btn" id="btn-retry" type="button">RESTART LEVEL</button>
         <button class="btn btn-ghost" id="btn-gameover-menu" type="button">MENU</button>
     </div>
 </div>
@@ -77,8 +77,8 @@
 <!-- FINALE -->
 <div id="final-overlay" class="overlay">
     <div class="glass-panel small-panel">
-        <div class="panel-title" id="final-title">HAI FINITO ICAROUS!</div>
-        <p class="final-text">Tutte le ragazze sono libere. Punteggio totale (somma dei tuoi record):</p>
+        <div class="panel-title" id="final-title">YOU BEAT ICAROUS!</div>
+        <p class="final-text">Every girl is free. Total score (sum of your best scores):</p>
         <div class="final-score" id="final-score">0</div>
         <button class="btn btn-primary" id="btn-final-menu" type="button">MENU</button>
     </div>
@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        <div class="glass-pill hud-power" aria-label="Energia">
+        <div class="glass-pill hud-power" aria-label="Energy">
             <div class="power-track"><div id="power-bar"></div></div>
         </div>
 
@@ -117,10 +117,10 @@
             <div class="hud-item"><span class="flag-indicator"></span></div>
             <div class="hud-item"><span class="key-indicator"></span></div>
             <div class="hud-item zoom-area">
-                <button id="btn-zoom-out" class="zoom-btn" type="button" aria-label="Zoom indietro">−</button>
-                <button id="btn-zoom-in" class="zoom-btn" type="button" aria-label="Zoom avanti">+</button>
+                <button id="btn-zoom-out" class="zoom-btn" type="button" aria-label="Zoom out">−</button>
+                <button id="btn-zoom-in" class="zoom-btn" type="button" aria-label="Zoom in">+</button>
             </div>
-            <button class="hud-item pause-btn" id="btn-pause" type="button" aria-label="Pausa"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></button>
+            <button class="hud-item pause-btn" id="btn-pause" type="button" aria-label="Pause"><svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor"><rect x="1" y="1" width="3.5" height="12" rx="1"/><rect x="7.5" y="1" width="3.5" height="12" rx="1"/></svg></button>
         </div>
     </div>
 

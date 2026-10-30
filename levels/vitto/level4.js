@@ -1,10 +1,10 @@
 /* LEGENDA: 1=Muro 2=Lava 3=Woman 4=Open 5=Close 6=Door 7=Flag 8=Bulb 9=Thes 10=Key 12=Star 16=Timer 11,13,14,15=Enemies 17=Fuoco fatuo */
-/* VITTO LEVELS 01 "Le Nove Stanze" - generato da tools/livelli/vitto01_nove_stanze.py */
+/* VITTO LEVELS 01 "The Nine Rooms" - generato da tools/livelli/vitto01_nove_stanze.py */
 /* Soluzione: OPEN A -> porta A -> checkpoint -> OPEN C -> scorciatoia C -> OPEN B (sacca) -> porta B -> chiave -> lava + timer -> ragazza. */
 /* CLOSE: A e C sono trappole da saltare; CLOSE B in R02 rimette il ponte (gruppo B) sopra la lava di R01. */
 loadLevelData({
-    name: "Le Nove Stanze",
-    intro: "Arianna è prigioniera nel Labirinto: segui il filo e trova la chiave della catena.",
+    name: "The Nine Rooms",
+    intro: "Ariadne is a prisoner in the Labyrinth: follow the thread and find the key to her chain.",
     background: 4,
     tileSize: 9,
     cols: 72,

@@ -64,8 +64,8 @@ L.put(53, 43, 2, 2, KEY)
 
 L.check()
 L.save('vitto-02-pozzo-di-dedalo.js',
-       name='Il Pozzo di Dedalo',
-       intro='Arianna è sprofondata nel pozzo. Scendi: le botole reggono finché restano chiuse.',
+       name="Daedalus' Well",
+       intro="Ariadne has fallen into the well. Climb down: the trapdoors hold as long as they stay shut.",
        background=2,
        comment='VITTO LEVELS 02 "Il Pozzo di Dedalo" - generato da tools/livelli/vitto02_pozzo_di_dedalo.py\n'
                'Sotto ogni botola c\'è una vasca: scendendo bisogna sterzare.\n'

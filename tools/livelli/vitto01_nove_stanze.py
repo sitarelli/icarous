@@ -80,8 +80,8 @@ L.put(15, 3, 2, 2, STAR)
 
 L.check()
 L.save('vitto-01-nove-stanze.js',
-       name='Le Nove Stanze',
-       intro='Arianna è prigioniera nel Labirinto: segui il filo e trova la chiave della catena.',
+       name="The Nine Rooms",
+       intro="Ariadne is a prisoner in the Labyrinth: follow the thread and find the key to her chain.",
        background=4,
        comment='VITTO LEVELS 01 "Le Nove Stanze" - generato da tools/livelli/vitto01_nove_stanze.py\n'
                'Soluzione: OPEN A -> porta A -> checkpoint -> OPEN C -> scorciatoia C -> OPEN B (sacca) -> porta B -> chiave -> lava + timer -> ragazza.\n'

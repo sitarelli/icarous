@@ -244,6 +244,10 @@ Gli sfondi sono assegnati in sequenza: Vitto può cambiarli dopo averli visti in
 ### 05 — La Galleria dei Guardiani
 
 - **Intro**: *"I Guardiani del Minotauro sorvegliano la galleria. Fermali, anche solo per un attimo."*
+- **Com'è stato costruito (2026-10-30, promosso)**: 136 × 44, galleria di 90 tile, più la fascia bassa K1 (ponte A
+  sulla lava, CLOSE A in fondo a destra) e K2 (chiave, OPEN B, CLOSE B trappola). Su richiesta di Vitto c'è **un solo
+  timer**, appeso sopra la botola A: l'andata in galleria è senza aiuti (la parte difficile), il ritorno col timer è
+  veloce. Lo schema e i criteri qui sotto sono quelli originali della scheda.
 - **Dimensioni**: 100 × 40 · tileSize 9 · sfondo 6 · difficoltà 6
 - **Idea / trucco**: una **galleria** lunga ~60 tile e piena di Guardiani da attraversare **due volte** (andata e
   ritorno). Ci sono **due timer**, uno a ogni capo: il primo serve all'andata, il secondo al ritorno. Chi spreca il

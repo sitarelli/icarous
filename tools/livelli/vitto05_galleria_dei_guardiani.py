@@ -6,8 +6,8 @@ Tre fasce:
   alta   = stanze della ragazza (N1 sopra l'atrio, N2 accanto); il resto è roccia sigillata
   media  = atrio (partenza) – GALLERIA – sala est (checkpoint). La galleria è l'unica strada fra i due capi.
   bassa  = sotto la sala est: K1 (ponte A sulla lava, fuoco fatuo) e K2 (chiave, OPEN B); il resto è sigillato
-La galleria si attraversa due volte: T1 sulla soglia ovest serve all'andata, T2 appeso sulla soglia est al ritorno.
-Chi prende T2 arrivando (è a 4 tile sopra il varco) lo spreca e torna "a caldo".
+La galleria si attraversa due volte: all'andata senza aiuti (è la parte difficile), al ritorno c'è l'unico timer,
+appeso sopra la botola A: risalendo dalla chiave lo si prende per forza e si torna veloci dalla ragazza.
 """
 from icarous_lib import *
 
@@ -35,7 +35,6 @@ L.put(52, 11, 3, 3, WOMAN)
 
 # ================= FASCIA MEDIA: atrio =================
 L.put(3, 27, 3, 3, THES)
-L.put(18, 27, 3, 3, TIMER)               # T1: proprio sulla soglia, non prima
 
 # ================= FASCIA MEDIA: la GALLERIA (x 23..112) =================
 # rialzi a terra: U rovesciata 4×3 (righe 27..29), sopra restano 12 tile liberi
@@ -63,7 +62,7 @@ L.put(75, 25, 2, 2, ENS)                 # S seduto sul rialzo 4
 L.put(83, 23, 2, 2, ENS)                 # S appeso sotto il pilastro 3
 
 # ================= FASCIA MEDIA: sala est (checkpoint) =================
-L.put(115, 16, 3, 3, TIMER)              # T2: appeso sopra la soglia, chi arriva distratto lo spreca
+L.put(124, 21, 3, 3, TIMER)              # timer del ritorno: sopra la botola A, all'andata ci si passa sotto a piedi
 L.put(118, 28, 2, 2, FLAG)
 L.door(122, 30, 7, 1, 'A')               # botola A nel pavimento
 L.put(131, 28, 2, 2, OPEN, 'A')
@@ -77,7 +76,7 @@ L.vline(95, 31, 39); L.clear(95, 33, 1, 7)  # K1 -> K2, varco a terra
 L.clear(100, 40, 16, 1)
 L.tub(100, 115, 41, 42)
 L.door(100, 40, 16, 1, 'A')
-L.put(118, 38, 2, 2, CLOSE, 'A')         # appena atterrati: rimette il ponte ma richiude la botola sopra
+L.put(131, 38, 2, 2, CLOSE, 'A')         # in fondo a destra, oltre la botola: tornando dal ponte non lo si tocca per sbaglio
 L.put(107, 32, 2, 2, ENV)                # sopra il ponte (a ponte aperto scende nella lava)
 # --- K2: chiave e OPEN B, con un CLOSE B trappola sulla strada del ritorno ---
 L.put(68, 38, 2, 2, OPEN, 'B')           # in fondo a ovest
@@ -88,7 +87,7 @@ L.put(87, 32, 3, 3, BULB)
 L.put(92, 32, 2, 2, OPEN, 'A')           # riapre la botola A (e il ponte) per risalire
 
 # --- fuoco fatuo: si materializza a metà ponte (abbastanza lontano dal cagnolino da non svegliarsi prima),
-#     poi lo insegue su per la botola e in galleria: il timer T2 lo congela insieme agli altri ---
+#     poi lo insegue su per la botola e in galleria: il timer del ritorno lo congela insieme agli altri ---
 L.put(100, 34, 2, 2, WISP)
 
 L.check()
@@ -97,8 +96,8 @@ L.save('vitto-05-galleria-dei-guardiani.js',
        intro='I Guardiani del Minotauro sorvegliano la galleria. Fermali, anche solo per un attimo.',
        background=6,
        comment='VITTO LEVELS 05 "La Galleria dei Guardiani" - generato da tools/livelli/vitto05_galleria_dei_guardiani.py\n'
-               'Galleria di 90 tile piena di Guardiani da attraversare due volte; un timer a ogni capo.\n'
-               'Soluzione: atrio -> T1 sulla soglia -> galleria -> sala est (checkpoint, NON prendere T2) -> OPEN A -> '
-               'botola A -> K1 (CLOSE A rimette il ponte) -> K2: chiave, OPEN B (scavalca il CLOSE B), OPEN A -> '
-               'risali -> T2 -> galleria al ritorno -> atrio -> botola B -> N1 -> N2 ragazza.',
-       note='Difficoltà 6: galleria lunga coi due timer, ponte A sulla lava, CLOSE B trappola nella stanza della chiave.')
+               'Galleria di 90 tile piena di Guardiani da attraversare due volte: andata senza aiuti, al ritorno il timer sopra la botola A.\n'
+               'Soluzione: atrio -> galleria -> sala est (checkpoint) -> OPEN A -> '
+               'botola A -> K1 (CLOSE A in fondo a destra rimette il ponte) -> K2: chiave, OPEN B (scavalca il CLOSE B), OPEN A -> '
+               'risali dalla botola prendendo il timer -> galleria al ritorno -> atrio -> botola B -> N1 -> N2 ragazza.',
+       note='Difficoltà 6: galleria lunga, andata a caldo e timer per il ritorno, ponte A sulla lava, CLOSE B trappola nella stanza della chiave.')

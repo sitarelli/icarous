@@ -644,32 +644,192 @@ function drawDizzy(dx, dy, dw, dh) {
 
 /* ===================== OGGETTI, PORTE, NEMICI ===================== */
 
-function drawGlowingTrigger(x, y, w, h, color, text, pulseOffset = 0) {
-    const sx = toScreenX(x);
-    const sy = toScreenY(y);
-    const sw = w * config.zoom;
-    const sh = h * config.zoom;
-    const pulse = Math.sin(Date.now() * 0.003 + pulseOffset) * 0.3 + 0.7;
+// Pulsanti OPEN / CLOSE disegnati a mano: piastra di pietra con scritta incisa + gemma luminosa con un lucchetto
+// (aperto per OPEN, chiuso per CLOSE). Piastra e gemma si disegnano UNA volta; a ogni frame si copiano,
+// più alone, anello di rune che gira, riflesso che passa e scintille. Un pulsante "già usato" si spegne.
+const SWITCH_STYLE = {
+    open:  { label: 'OPEN',  glow: '#20e0ff', ring: '#8ff4ff', spark: '#d8fdff', gem: ['#f0ffff', '#46e4ff', '#0b6f9a'] },
+    close: { label: 'CLOSE', glow: '#ff6a10', ring: '#ffc07a', spark: '#ffe6c8', gem: ['#fff2dc', '#ff8a2a', '#a8300a'] }
+};
+const switchSprites = {};
+
+function roundRectPath(g, x, y, w, h, r) {
+    g.beginPath();
+    g.moveTo(x + r, y);
+    g.arcTo(x + w, y, x + w, y + h, r);
+    g.arcTo(x + w, y + h, x, y + h, r);
+    g.arcTo(x, y + h, x, y, r);
+    g.arcTo(x, y, x + w, y, r);
+    g.closePath();
+}
+
+function drawPadlock(g, cx, cy, s, open) {
+    g.save();
+    g.lineJoin = 'round';
+    g.lineCap = 'round';
+    // archetto: chiuso dentro il corpo, oppure sollevato e ruotato (aperto)
+    g.lineWidth = s * 0.16;
+    g.strokeStyle = 'rgba(0, 30, 50, 0.55)';
+    const shackle = (dx, dy) => {
+        g.beginPath();
+        if (open) {
+            g.moveTo(cx - s * 0.32 + dx, cy - s * 0.05 + dy);
+            g.lineTo(cx - s * 0.32 + dx, cy - s * 0.42 + dy);
+            g.arc(cx + dx, cy - s * 0.42 + dy, s * 0.32, Math.PI, Math.PI * 1.9);
+        } else {
+            g.moveTo(cx - s * 0.32 + dx, cy - s * 0.05 + dy);
+            g.lineTo(cx - s * 0.32 + dx, cy - s * 0.3 + dy);
+            g.arc(cx + dx, cy - s * 0.3 + dy, s * 0.32, Math.PI, 0);
+            g.lineTo(cx + s * 0.32 + dx, cy - s * 0.05 + dy);
+        }
+        g.stroke();
+    };
+    shackle(s * 0.03, s * 0.04);
+    g.strokeStyle = '#ffffff';
+    g.lineWidth = s * 0.12;
+    shackle(0, 0);
+    // corpo
+    roundRectPath(g, cx - s * 0.45 + s * 0.03, cy - s * 0.08 + s * 0.04, s * 0.9, s * 0.7, s * 0.14);
+    g.fillStyle = 'rgba(0, 30, 50, 0.45)';
+    g.fill();
+    roundRectPath(g, cx - s * 0.45, cy - s * 0.08, s * 0.9, s * 0.7, s * 0.14);
+    g.fillStyle = '#ffffff';
+    g.fill();
+    // buco della chiave
+    g.fillStyle = 'rgba(40, 50, 70, 0.75)';
+    g.beginPath();
+    g.arc(cx, cy + s * 0.18, s * 0.09, 0, Math.PI * 2);
+    g.fill();
+    g.fillRect(cx - s * 0.035, cy + s * 0.18, s * 0.07, s * 0.2);
+    g.restore();
+}
+
+function buildSwitchSprites(type) {
+    const st = SWITCH_STYLE[type], S = 192;
+    // --- piastra di pietra con rivetti e scritta incisa ---
+    const plate = document.createElement('canvas');
+    plate.width = plate.height = S;
+    const p = plate.getContext('2d');
+    roundRectPath(p, 6, 10, S - 12, S - 14, 30);
+    p.fillStyle = 'rgba(0, 0, 0, 0.45)';
+    p.fill();
+    const pg = p.createLinearGradient(0, 4, 0, S - 6);
+    pg.addColorStop(0, '#6a6f80');
+    pg.addColorStop(1, '#2a2d38');
+    roundRectPath(p, 6, 4, S - 12, S - 14, 30);
+    p.fillStyle = pg;
+    p.fill();
+    p.lineWidth = 4;
+    p.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+    p.stroke();
+    [[26, 24], [S - 26, 24], [26, S - 34], [S - 26, S - 34]].forEach(([x, y]) => {
+        p.fillStyle = '#1d1f27';
+        p.beginPath(); p.arc(x, y + 1, 6, 0, Math.PI * 2); p.fill();
+        p.fillStyle = '#9aa0b4';
+        p.beginPath(); p.arc(x, y, 5, 0, Math.PI * 2); p.fill();
+    });
+    p.font = `${Math.round(S * 0.2)}px ${FONT_TITLE}`;
+    p.textAlign = 'center';
+    p.textBaseline = 'middle';
+    p.fillStyle = 'rgba(0, 0, 0, 0.55)';
+    p.fillText(st.label, S / 2, S * 0.81 + 2);
+    p.fillStyle = st.ring;
+    p.fillText(st.label, S / 2, S * 0.81);
+    // --- gemma tonda con lucchetto ---
+    const gem = document.createElement('canvas');
+    gem.width = gem.height = S;
+    const g = gem.getContext('2d');
+    const c = S / 2, r = S * 0.44;
+    g.fillStyle = 'rgba(0, 0, 0, 0.4)';
+    g.beginPath(); g.arc(c, c + 5, r + 4, 0, Math.PI * 2); g.fill();
+    const rim = g.createLinearGradient(0, c - r, 0, c + r);
+    rim.addColorStop(0, '#d7dbe6');
+    rim.addColorStop(1, '#5c6172');
+    g.fillStyle = rim;
+    g.beginPath(); g.arc(c, c, r + 4, 0, Math.PI * 2); g.fill();
+    const body = g.createRadialGradient(c - r * 0.3, c - r * 0.35, r * 0.1, c, c, r);
+    body.addColorStop(0, st.gem[0]);
+    body.addColorStop(0.45, st.gem[1]);
+    body.addColorStop(1, st.gem[2]);
+    g.fillStyle = body;
+    g.beginPath(); g.arc(c, c, r - 4, 0, Math.PI * 2); g.fill();
+    drawPadlock(g, c, c + r * 0.05, r * 0.95, type === 'open');
+    g.globalAlpha = 0.55;
+    g.fillStyle = '#ffffff';
+    g.beginPath(); g.ellipse(c - r * 0.3, c - r * 0.52, r * 0.42, r * 0.18, -0.35, 0, Math.PI * 2); g.fill();
+    return { plate, gem, fontOk: !document.fonts || document.fonts.check(`20px Anton`) };
+}
+
+function switchSprite(type) {
+    const sp = switchSprites[type];
+    // la scritta usa Anton: se all'inizio il font non era ancora pronto, la piastra si ridisegna una volta dopo
+    if (!sp || (!sp.fontOk && document.fonts && document.fonts.check(`20px Anton`))) switchSprites[type] = buildSwitchSprites(type);
+    return switchSprites[type];
+}
+
+// Un pulsante è "carico" se premerlo cambierebbe qualcosa (OPEN con porte ancora chiuse, CLOSE con porte aperte)
+function switchIsLive(t) {
+    return triggers.some(d => d.type === 'door' && d.group === t.group && (t.type === 'open' ? !d.open : d.open));
+}
+
+function drawSwitch(t) {
+    const x = toScreenX(t.x), y = toScreenY(t.y), w = t.w * config.zoom, h = t.h * config.zoom;
+    if (x + w * 2 < 0 || y + h * 2 < 0 || x - w > config.viewportWidth || y - h > config.viewportHeight) return;
+    const st = SWITCH_STYLE[t.type], sp = switchSprite(t.type);
+    const live = switchIsLive(t);
+    const time = Date.now() * 0.001 + t.x * 0.011;
+    const pulse = 0.75 + Math.sin(time * 3.2) * 0.25;
+    const gx = x + w / 2, gy = y + h * 0.4, gr = w * 0.3;
     ctx.save();
-    // alone pre-calcolato al posto di shadowBlur (che sui processori lenti è il più costoso)
+    // alone
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = 0.55 * pulse;
-    const gw = sw * 2.2, gh = sh * 2.2;
-    ctx.drawImage(glowSprite(color), sx + sw / 2 - gw / 2, sy + sh / 2 - gh / 2, gw, gh);
+    ctx.globalAlpha = live ? 0.4 + 0.4 * pulse : 0.18;
+    const gs = w * (live ? 2.5 + 0.25 * pulse : 1.8);
+    ctx.drawImage(glowSprite(st.glow), gx - gs / 2, gy - gs / 2, gs, gs);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = pulse;
-    ctx.strokeRect(sx, sy, sw, sh);
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.2 * pulse;
-    ctx.fillRect(sx, sy, sw, sh);
     ctx.globalAlpha = 1;
-    ctx.fillStyle = color;
-    ctx.font = `${Math.min(sw * 0.24, sh * 0.34)}px ${FONT_TITLE}`;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(text, sx + sw / 2, sy + sh / 2);
+    // piastra e gemma (la gemma "respira" quando è carica, è spenta quando è già usata)
+    ctx.drawImage(sp.plate, x, y, w, h);
+    const k = live ? 1 + 0.05 * Math.sin(time * 3.2) : 0.94;
+    if (!live) ctx.globalAlpha = 0.45;
+    ctx.drawImage(sp.gem, gx - gr * k, gy - gr * k, gr * 2 * k, gr * 2 * k);
+    ctx.globalAlpha = 1;
+    if (live) {
+        // anello di rune che gira attorno alla gemma
+        ctx.strokeStyle = st.ring;
+        ctx.lineWidth = Math.max(1, w * 0.025);
+        ctx.setLineDash([w * 0.05, w * 0.07]);
+        ctx.lineDashOffset = -time * w * 0.25;
+        ctx.globalAlpha = 0.5 + 0.4 * pulse;
+        ctx.beginPath();
+        ctx.arc(gx, gy, gr * 1.22, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // riflesso che attraversa la gemma ogni tanto
+        const sweep = (time * 0.45) % 1;
+        if (sweep < 0.35) {
+            const sx = gx - gr + (sweep / 0.35) * gr * 2;
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(gx, gy, gr * 0.92, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.globalAlpha = 0.5;
+            ctx.fillStyle = '#ffffff';
+            ctx.translate(sx, gy);
+            ctx.rotate(0.5);
+            ctx.fillRect(-gr * 0.12, -gr * 1.5, gr * 0.24, gr * 3);
+            ctx.restore();
+        }
+        // tre scintille che salgono e svaniscono
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = st.spark;
+        for (let i = 0; i < 3; i++) {
+            const ph = (time * 0.6 + i / 3) % 1;
+            const s = Math.max(1, w * 0.035) * (1 - ph);
+            ctx.globalAlpha = 1 - ph;
+            ctx.fillRect(gx + Math.sin(i * 2.1 + time) * gr * 1.1 - s, gy - gr - ph * h * 0.55 - s, s * 2, s * 2);
+        }
+    }
     ctx.restore();
 }
 
@@ -1384,8 +1544,7 @@ export function draw(gameRunning) {
 
     triggers.forEach(t => {
         if (t.type === 'door' && !t.open) drawImg(sprites.door, t.x, t.y, t.w / config.tileSize, t.h / config.tileSize);
-        if (t.type === 'open') drawGlowingTrigger(t.x, t.y, t.w, t.h, '#00ffff', 'OPEN', 0);
-        if (t.type === 'close') drawGlowingTrigger(t.x, t.y, t.w, t.h, '#ff6600', 'CLOSE', Math.PI);
+        if (t.type === 'open' || t.type === 'close') drawSwitch(t);
     });
 
     drawLavaParticles();

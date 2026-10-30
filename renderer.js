@@ -18,27 +18,45 @@ let bgCanvas = null;
 let bgSrc = '';
 const PARALLAX_FACTOR = 0.3;
 
-// Lo sfondo fotografico viene sfocato e desaturato: così non "litiga" con gli sprite cartoon
+// Lo sfondo fotografico viene sfocato e desaturato: così non "litiga" con gli sprite cartoon.
+// Per non vedere la linea dove una foto si attacca all'altra, la tessera è fatta di 4 copie
+// a specchio (normale, ribaltata in orizzontale, in verticale, in entrambi i sensi): i bordi
+// combaciano sempre e, con la sfocatura, l'attacco sparisce.
 function buildBackground(img) {
-    const targetW = 1600;
-    const targetH = Math.round(targetW * img.naturalHeight / img.naturalWidth);
+    const tileW = 800;   // la foto è ridotta a 1/5 e sfocata: più risoluzione non servirebbe
+    const tileH = Math.round(tileW * img.naturalHeight / img.naturalWidth);
     const small = document.createElement('canvas');
-    small.width = Math.round(targetW / 5);
-    small.height = Math.round(targetH / 5);
+    small.width = Math.round(tileW / 4);
+    small.height = Math.round(tileH / 4);
     const sctx = small.getContext('2d');
     sctx.imageSmoothingQuality = 'high';
     sctx.drawImage(img, 0, 0, small.width, small.height);
 
+    // tessera piccola a specchio, poi ingrandita tutta insieme (la sfocatura passa sopra gli attacchi)
+    const mirror = document.createElement('canvas');
+    mirror.width = small.width * 2;
+    mirror.height = small.height * 2;
+    const mctx = mirror.getContext('2d');
+    [[1, 1], [-1, 1], [1, -1], [-1, -1]].forEach(([fx, fy]) => {
+        mctx.setTransform(fx, 0, 0, fy, fx < 0 ? mirror.width : 0, fy < 0 ? mirror.height : 0);
+        mctx.drawImage(small, 0, 0);
+    });
+
     const out = document.createElement('canvas');
-    out.width = targetW;
-    out.height = targetH;
+    out.width = tileW * 2;
+    out.height = tileH * 2;
     const octx = out.getContext('2d');
     octx.imageSmoothingQuality = 'high';
-    octx.drawImage(small, 0, 0, targetW, targetH);
+    octx.drawImage(mirror, 0, 0, out.width, out.height);
     octx.globalCompositeOperation = 'saturation';
     octx.globalAlpha = 0.45;
     octx.fillStyle = 'hsl(0, 0%, 50%)';
-    octx.fillRect(0, 0, targetW, targetH);
+    octx.fillRect(0, 0, out.width, out.height);
+    // scurimento già "cotto" nella tessera: un riempimento a tutto schermo in meno a ogni frame
+    octx.globalCompositeOperation = 'source-over';
+    octx.globalAlpha = 0.45;
+    octx.fillStyle = '#000';
+    octx.fillRect(0, 0, out.width, out.height);
     return out;
 }
 
@@ -67,22 +85,25 @@ function drawBackground() {
         ctx.fillRect(0, 0, vW, vH);
         return;
     }
-    const scale = vH / bgCanvas.height;
+    // una foto alta quanto lo schermo; la tessera ne contiene 2×2 (a specchio)
+    const scale = 2 * vH / bgCanvas.height;
     const scaledW = bgCanvas.width * scale;
-    const scaledH = vH;
+    const scaledH = 2 * vH;
     const offX = ((camera.x * PARALLAX_FACTOR) % scaledW + scaledW) % scaledW;
     const offY = ((camera.y * PARALLAX_FACTOR) % scaledH + scaledH) % scaledH;
     for (let tx = -offX; tx < vW; tx += scaledW) {
         ctx.drawImage(bgCanvas, tx, -offY, scaledW, scaledH);
-        if (offY !== 0) ctx.drawImage(bgCanvas, tx, -offY + scaledH, scaledW, scaledH);
+        if (scaledH - offY < vH) ctx.drawImage(bgCanvas, tx, -offY + scaledH, scaledW, scaledH);
     }
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-    ctx.fillRect(0, 0, vW, vH);
 }
 
 /* ===================== INIZIALIZZAZIONE E CACHE DEL LIVELLO ===================== */
 
 let lightCanvas = null, lctx = null;
+const LIGHT_RES = 0.5;    // la luce è tutta sfumata: basta mezza risoluzione (4 volte meno pixel)
+let lightSprite = null;   // cerchio sfumato disegnato una volta sola e poi solo copiato
+const glowSprites = {};   // aloni colorati per stelle e interruttori (al posto di shadowBlur)
+const emojiSprites = {};  // cuori e stelle della vittoria (le emoji come testo costano moltissimo)
 let tintCanvas = null, tctx = null;
 let wallEdges = null;     // per ogni tile muro: quali lati sono esposti
 let minimap = null;       // mappa in miniatura per il radar
@@ -101,19 +122,50 @@ export function initRenderer(canvasElement, contextElement, spritesData) {
     tintCanvas.width = tintCanvas.height = 512;
     tctx = tintCanvas.getContext('2d');
 
-    if (isMobile) {
-        // Su mobile shadowBlur è molto costoso: lo disattiviamo del tutto
-        const originalSetter = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, 'shadowBlur').set;
-        Object.defineProperty(ctx, 'shadowBlur', { set: function(val) { originalSetter.call(this, 0); } });
-    }
+    lightSprite = document.createElement('canvas');
+    lightSprite.width = lightSprite.height = 128;
+    const l = lightSprite.getContext('2d');
+    const g = l.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(0.35, 'rgba(0,0,0,0.9)');
+    g.addColorStop(0.7, 'rgba(0,0,0,0.45)');
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    l.fillStyle = g;
+    l.fillRect(0, 0, 128, 128);
+}
+
+function glowSprite(color) {
+    if (glowSprites[color]) return glowSprites[color];
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const g2 = c.getContext('2d');
+    const g = g2.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    g2.globalAlpha = 0.7;
+    g2.fillStyle = g;
+    g2.fillRect(0, 0, 64, 64);
+    return (glowSprites[color] = c);
+}
+
+function emojiSprite(ch) {
+    if (emojiSprites[ch]) return emojiSprites[ch];
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const e = c.getContext('2d');
+    e.font = '52px sans-serif';
+    e.textAlign = 'center';
+    e.textBaseline = 'middle';
+    e.fillText(ch, 32, 35);
+    return (emojiSprites[ch] = c);
 }
 
 // Chiamata da main.js quando la finestra cambia misura: la luce dinamica segue la tela
 export function resizeRenderer(pixelRatio) {
     dpr = pixelRatio || 1;
     if (!lightCanvas) return;
-    lightCanvas.width = canvas.width;
-    lightCanvas.height = canvas.height;
+    lightCanvas.width = Math.max(1, Math.round(config.viewportWidth * LIGHT_RES));
+    lightCanvas.height = Math.max(1, Math.round(config.viewportHeight * LIGHT_RES));
 }
 
 const isWall = (x, y) => y < 0 || y >= currentMap.length || x < 0 || x >= currentMap[0].length || currentMap[y][x] === 1;
@@ -273,11 +325,12 @@ function drawWalls() {
 /* ===================== LAVA ===================== */
 
 function drawLava(l) {
-    drawImg(sprites.lava, l.x, l.y, l.w / config.tileSize, l.h / config.tileSize);
     const sx = toScreenX(l.x);
     const sy = toScreenY(l.y);
     const sw = l.w * config.zoom;
     const tz = config.tileSize * config.zoom;
+    if (sx + sw < -tz * 4 || sx > config.viewportWidth + tz * 4 || sy > config.viewportHeight + tz * 4 || sy + l.h * config.zoom < -tz * 4) return;
+    drawImg(sprites.lava, l.x, l.y, l.w / config.tileSize, l.h / config.tileSize);
     ctx.save();
     // cresta luminosa che ondeggia
     ctx.globalAlpha = 0.45;
@@ -333,22 +386,17 @@ function drawLavaParticles() {
 /* ===================== PARTICELLE ===================== */
 
 function drawDustParticles() {
+    if (!dustParticles.length) return;
+    ctx.save();
+    ctx.fillStyle = 'rgb(130, 130, 130)';
     dustParticles.forEach(p => {
-        const px = toScreenX(p.x);
-        const py = toScreenY(p.y);
-        ctx.save();
-        ctx.globalAlpha = p.life * 0.5;
         const particleSize = isFinite(p.size) && p.size > 0 ? p.size : 2;
-        const gradient = ctx.createRadialGradient(px, py, 0, px, py, particleSize);
-        gradient.addColorStop(0, 'rgba(150, 150, 150, 0.8)');
-        gradient.addColorStop(0.5, 'rgba(120, 120, 120, 0.5)');
-        gradient.addColorStop(1, 'rgba(100, 100, 100, 0)');
-        ctx.fillStyle = gradient;
+        ctx.globalAlpha = p.life * 0.3;
         ctx.beginPath();
-        ctx.arc(px, py, particleSize, 0, Math.PI * 2);
+        ctx.arc(toScreenX(p.x), toScreenY(p.y), particleSize * 0.7, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
     });
+    ctx.restore();
 }
 
 function drawFeathers() {
@@ -375,26 +423,26 @@ function drawFeathers() {
 }
 
 function drawFireworkParticles() {
+    if (!fireworkParticles.length) return;
+    ctx.save();
     fireworkParticles.forEach(p => {
         if (p.life <= 0) return;
-        ctx.save();
+        const s = p.size * 2 * config.zoom;
         ctx.globalAlpha = p.life;
-        ctx.font = `${p.size * 2 * config.zoom}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(p.type === 'heart' ? '❤️' : '⭐', toScreenX(p.x), toScreenY(p.y));
-        ctx.restore();
+        ctx.drawImage(emojiSprite(p.type === 'heart' ? '❤️' : '⭐'), toScreenX(p.x) - s / 2, toScreenY(p.y) - s / 2, s, s);
     });
+    ctx.restore();
 }
 
 function drawColorParticles() {
+    if (!colorParticles.length) return;
+    ctx.save();
     colorParticles.forEach(p => {
-        ctx.save();
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.life;
         ctx.fillRect(toScreenX(p.x), toScreenY(p.y), p.size * config.zoom, p.size * config.zoom);
-        ctx.restore();
     });
+    ctx.restore();
 }
 
 function drawFloatTexts() {
@@ -605,8 +653,12 @@ function drawGlowingTrigger(x, y, w, h, color, text, pulseOffset = 0) {
     const sh = h * config.zoom;
     const pulse = Math.sin(Date.now() * 0.003 + pulseOffset) * 0.3 + 0.7;
     ctx.save();
-    ctx.shadowBlur = 20 * pulse;
-    ctx.shadowColor = color;
+    // alone pre-calcolato al posto di shadowBlur (che sui processori lenti è il più costoso)
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.55 * pulse;
+    const gw = sw * 2.2, gh = sh * 2.2;
+    ctx.drawImage(glowSprite(color), sx + sw / 2 - gw / 2, sy + sh / 2 - gh / 2, gw, gh);
+    ctx.globalCompositeOperation = 'source-over';
     ctx.strokeStyle = color;
     ctx.lineWidth = 3;
     ctx.globalAlpha = pulse;
@@ -615,7 +667,6 @@ function drawGlowingTrigger(x, y, w, h, color, text, pulseOffset = 0) {
     ctx.globalAlpha = 0.2 * pulse;
     ctx.fillRect(sx, sy, sw, sh);
     ctx.globalAlpha = 1;
-    ctx.shadowBlur = 15 * pulse;
     ctx.fillStyle = color;
     ctx.font = `${Math.min(sw * 0.24, sh * 0.34)}px ${FONT_TITLE}`;
     ctx.textAlign = "center";
@@ -628,11 +679,15 @@ function drawStarGlow(item) {
     const img = sprites.star;
     if (!img || !img.complete) return;
     const pulse = Math.sin(Date.now() * 0.005) * 0.3 + 0.7;
+    const x = toScreenX(item.x), y = toScreenY(item.y), w = item.w * config.zoom, h = item.h * config.zoom;
+    if (x + w * 2 < 0 || y + h * 2 < 0 || x - w > config.viewportWidth || y - h > config.viewportHeight) return;
     ctx.save();
-    ctx.shadowBlur = 25 * pulse;
-    ctx.shadowColor = '#ffff00';
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.6 * pulse;
+    ctx.drawImage(glowSprite('#ffff00'), x - w * 0.6, y - h * 0.6, w * 2.2, h * 2.2);
+    ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = pulse;
-    ctx.drawImage(img, toScreenX(item.x), toScreenY(item.y), item.w * config.zoom, item.h * config.zoom);
+    ctx.drawImage(img, x, y, w, h);
     ctx.restore();
 }
 
@@ -683,13 +738,8 @@ function drawTimerRing() {
 
 function lightHole(x, y, r, strength) {
     if (r <= 0) return;
-    const g = lctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, `rgba(0,0,0,${strength})`);
-    g.addColorStop(0.35, `rgba(0,0,0,${strength * 0.9})`);
-    g.addColorStop(0.7, `rgba(0,0,0,${strength * 0.45})`);
-    g.addColorStop(1, 'rgba(0,0,0,0)');
-    lctx.fillStyle = g;
-    lctx.fillRect(x - r, y - r, r * 2, r * 2);
+    lctx.globalAlpha = strength;
+    lctx.drawImage(lightSprite, x - r, y - r, r * 2, r * 2);
 }
 
 function inView(x, y, margin) {
@@ -704,7 +754,8 @@ function drawLighting() {
 
     const vw = config.viewportWidth, vh = config.viewportHeight;
     const tz = config.tileSize * config.zoom;
-    lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    lctx.setTransform(LIGHT_RES, 0, 0, LIGHT_RES, 0, 0);
+    lctx.globalAlpha = 1;
     lctx.globalCompositeOperation = 'source-over';
     lctx.clearRect(0, 0, vw, vh);
     lctx.fillStyle = `rgba(3, 4, 12, ${darkness})`;
@@ -747,18 +798,9 @@ function drawLighting() {
         if (inView(x, y, tz * 3)) lightHole(x, y, tz * 2, 0.35);
     });
 
+    lctx.globalAlpha = 1;
     ctx.drawImage(lightCanvas, 0, 0, vw, vh);
-
-    // Leggera luce calda attorno al giocatore
-    const px = toScreenX(player.x + player.w / 2), py = toScreenY(player.y + player.h / 2);
-    const g = ctx.createRadialGradient(px, py, 0, px, py, pr * 0.6);
-    g.addColorStop(0, 'rgba(255, 190, 120, 0.08)');
-    g.addColorStop(1, 'rgba(255, 190, 120, 0)');
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = g;
-    ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2);
-    ctx.restore();
+    // (tolta la luce calda additiva attorno al giocatore: si vedeva appena e pesava quanto mezzo frame)
 }
 
 /* ===================== RADAR (stile GTA) E FRECCIA ===================== */
@@ -928,24 +970,24 @@ function drawEdgeArrow() {
 /* ===================== SCHERMI E TRANSIZIONI ===================== */
 
 // Bordi che sfumano nel nero: la grotta "continua" oltre lo schermo
-let vignette = null, vignetteKey = '';
+let vignette = null, vignetteTop = null, vignetteKey = '';
 function drawEdgeVignette() {
     const vw = config.viewportWidth, vh = config.viewportHeight;
-    const key = vw + 'x' + vh;
+    const key = vw + 'x' + vh + 'x' + config.hudBottom;
     if (vignetteKey !== key) {
         vignetteKey = key;
         const r = Math.hypot(vw, vh) / 2;
         vignette = ctx.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * 0.42, vw / 2, vh / 2, r);
         vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
         vignette.addColorStop(1, 'rgba(0, 0, 0, 0.55)');
+        vignetteTop = ctx.createLinearGradient(0, 0, 0, config.hudBottom + 30);
+        vignetteTop.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
+        vignetteTop.addColorStop(1, 'rgba(0, 0, 0, 0)');
     }
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, vw, vh);
     // ombra leggera in alto, sotto le pillole dell'HUD
-    const top = ctx.createLinearGradient(0, 0, 0, config.hudBottom + 30);
-    top.addColorStop(0, 'rgba(0, 0, 0, 0.35)');
-    top.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = top;
+    ctx.fillStyle = vignetteTop;
     ctx.fillRect(0, 0, vw, config.hudBottom + 30);
 }
 

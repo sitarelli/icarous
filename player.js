@@ -404,11 +404,15 @@ function onCeilingBump() {
 }
 
 // ===== PARTICELLE COLORATE =====
+const MAX_COLOR_PARTICLES = isMobile ? 70 : 120;
+const MAX_FIREWORKS = isMobile ? 18 : 30;
 export function createColorParticles(x, y, count, type = 'collect') {
     const colors = type === 'death' || type === 'hit'
         ? ['#ff0000', '#ff6600', '#ffff00'] // Rosso/arancio/giallo per danno
         : ['#00ffff', '#ff00ff', '#ffff00', '#00ff00']; // Cyan/magenta/giallo/verde per collect
 
+    // Tetto ai coriandoli: sui processori lenti centinaia di quadratini pesano
+    count = Math.min(count, MAX_COLOR_PARTICLES - colorParticles.length);
     for (let i = 0; i < count; i++) {
         colorParticles.push({
             x, y,
@@ -436,7 +440,7 @@ function updateColorParticles(dm) {
 
 // ===== FUOCHI D'ARTIFICIO (CUORI E STELLE) =====
 function createVictoryBurst(x, y) {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4 && fireworkParticles.length < MAX_FIREWORKS; i++) {
         fireworkParticles.push({
             x: x + (Math.random() - 0.5) * 40,
             y: y + (Math.random() - 0.5) * 40,
@@ -532,8 +536,8 @@ export function update(dt, hooks) {
 
         const centerX = gameState.vX + gameState.vW / 2;
         const centerY = gameState.vY + gameState.vH / 2;
-        if (Math.random() < 0.15) createVictoryBurst(centerX, centerY);
-        if (Math.random() < 0.3) createColorParticles(centerX, centerY, 8 + Math.floor(Math.random() * 4), 'collect');
+        if (Math.random() < 0.1 * dm) createVictoryBurst(centerX, centerY);
+        if (Math.random() < 0.18 * dm) createColorParticles(centerX, centerY, 6 + Math.floor(Math.random() * 3), 'collect');
         updateFireworkParticles(dm);
         return;
     }

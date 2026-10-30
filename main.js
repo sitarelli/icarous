@@ -356,8 +356,9 @@ export function loadLevel(n) {
     loadLevelSrc(src, () => { alert(`Missing file ${src}`); showMenu(); });
 }
 
-// Laboratorio: livello da levels/test/ oppure file caricato dal computer (test.html)
-const LAB_PATH = /^levels\/test\/[\w\-. ]+\.js$/;
+// Laboratorio: livello da levels/test/, livello ufficiale (levels/levelN.js, levels/vitto/levelN.js)
+// oppure file caricato dal computer (test.html)
+const LAB_PATH = /^levels\/(test\/[\w\-. ]+|(vitto\/)?level\d+)\.js$/;
 function loadLabLevel() {
     setCurrentLevelNumber(0);
     gameState.levelNumber = 0;
@@ -370,7 +371,7 @@ function loadLabLevel() {
     } else if (LAB_PATH.test(labSource)) {
         loadLevelSrc(labSource, () => alert('File not found: ' + labSource));
     } else {
-        alert('Invalid path (must be inside levels/test/): ' + labSource);
+        alert('Invalid path (must be a level inside levels/): ' + labSource);
     }
 }
 

@@ -64,6 +64,16 @@
     }
     .level.active { border-color: var(--orange); background: rgba(248, 149, 32, 0.15); }
     .level b { display: block; font-size: 14px; }
+    .level b em { font-style: normal; color: var(--orange); margin-right: 6px; }
+    .level i { float: right; font-style: normal; font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+               padding: 2px 8px; border-radius: 99px; border: 1px solid var(--border); color: rgba(255, 255, 255, 0.7); }
+    .level i.wip { border-color: var(--warn); color: var(--warn); }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 12px;
+            border-radius: 16px; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.3); }
+    .tabs button { padding: 9px 6px; border: 0; border-radius: 12px; background: transparent; color: rgba(255, 255, 255, 0.65);
+                   font-family: 'Anton', sans-serif; font-size: 16px; letter-spacing: 1.5px; cursor: pointer; }
+    .tabs button small { font-family: 'Poppins', sans-serif; font-size: 11px; letter-spacing: 0; opacity: .7; margin-left: 4px; }
+    .tabs button.on { background: linear-gradient(180deg, #ffad4a, var(--orange)); color: #1a1006; box-shadow: var(--hl); }
     .level span { font-size: 11px; color: rgba(255, 255, 255, 0.6); }
     button.action {
         width: 100%;
@@ -126,8 +136,13 @@
     </div>
 
     <div class="card">
-        <h2>Livelli di prova</h2>
+        <h2>Livelli</h2>
+        <div class="tabs" id="tabs">
+            <button type="button" data-camp="originale">CLASSIC<small id="n-originale"></small></button>
+            <button type="button" data-camp="vitto">NEW LEVELS<small id="n-vitto"></small></button>
+        </div>
         <div id="level-list"></div>
+        <p class="small"><b>nel gioco</b> = già promosso · <b style="color:var(--warn)">da approvare</b> = solo file di prova in levels/test/</p>
     </div>
 
     <div class="card">
@@ -174,25 +189,60 @@ function playText(text, label) {
     play('local', label);
 }
 
-/* ---------- elenco ---------- */
+/* ---------- elenco: due schede, CLASSIC e NEW LEVELS ----------
+   Per ogni numero di livello della campagna: il file di prova di levels/test/ se c'è (originale-NN.js / vitto-NN.js),
+   altrimenti il livello ufficiale. I livelli oltre "count" di config.js sono quelli ancora da approvare. */
 const list = $('level-list');
-(window.TEST_LEVELS || []).forEach(lv => {
-    const b = document.createElement('button');
-    b.className = 'level';
-    b.type = 'button';
-    b.innerHTML = `<b>${lv.name}</b><span>${lv.author ? lv.author + ' · ' : ''}${lv.note || lv.file}</span>`;
-    b.onclick = async () => {
-        document.querySelectorAll('.level').forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
-        try {
-            const text = await (await fetch(`levels/test/${lv.file}?t=${Date.now()}`)).text();
-            validate(text);
-        } catch (e) { $('report').innerHTML = '<p class="small">Impossibile leggere il file per il controllo.</p>'; }
-        play(`levels/test/${lv.file}`, lv.name);
-    };
-    list.appendChild(b);
-});
-if (!list.children.length) list.innerHTML = '<p class="small">Nessun livello in levels/test/elenco.js</p>';
+// gli script vitto-NN usano il numero della scheda: le schede 01 e 04 sono state scambiate nella campagna
+const SCHEDA_TO_LEVEL = { 1: 4, 4: 1 };
+const campaigns = { originale: [], vitto: [] };
+let currentCamp = 'vitto';
+
+function buildCampaigns(CAMPAIGNS) {
+    for (const camp of Object.keys(campaigns)) {
+        const slots = {};
+        for (let n = 1; n <= CAMPAIGNS[camp].count; n++)
+            slots[n] = { n, src: `${CAMPAIGNS[camp].dir}/level${n}.js`, name: null, note: 'Livello ufficiale', live: true };
+        (window.TEST_LEVELS || []).forEach(lv => {
+            const m = lv.file.match(camp === 'originale' ? /^originale-(\d+)/ : /^vitto-(\d+)/);
+            if (!m) return;
+            const n = camp === 'vitto' ? (SCHEDA_TO_LEVEL[+m[1]] || +m[1]) : +m[1];
+            slots[n] = { n, src: `levels/test/${lv.file}`, name: lv.name, note: lv.note || lv.file,
+                         live: n <= CAMPAIGNS[camp].count };
+        });
+        campaigns[camp] = Object.values(slots).sort((a, b) => a.n - b.n);
+        $('n-' + camp).textContent = campaigns[camp].length;
+    }
+}
+
+function showCampaign(camp, autoplay) {
+    currentCamp = camp;
+    try { localStorage.setItem('icarous_lab_camp', camp); } catch (e) {}
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.camp === camp));
+    list.innerHTML = '';
+    campaigns[camp].forEach(lv => {
+        const b = document.createElement('button');
+        b.className = 'level';
+        b.type = 'button';
+        const label = lv.name || `Level ${lv.n}`;
+        b.innerHTML = `<i class="${lv.live ? '' : 'wip'}">${lv.live ? 'nel gioco' : 'da approvare'}</i>` +
+                      `<b><em>${String(lv.n).padStart(2, '0')}</em>${label}</b><span>${lv.note}</span>`;
+        b.onclick = async () => {
+            document.querySelectorAll('.level').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            try {
+                const text = await (await fetch(`${lv.src}?t=${Date.now()}`)).text();
+                validate(text);
+            } catch (e) { $('report').innerHTML = '<p class="small">Impossibile leggere il file per il controllo.</p>'; }
+            play(lv.src, `${camp === 'vitto' ? 'NEW LEVELS' : 'CLASSIC'} ${lv.n} · ${label}`);
+        };
+        list.appendChild(b);
+    });
+    if (!list.children.length) list.innerHTML = '<p class="small">Nessun livello in questa campagna.</p>';
+    if (autoplay && list.querySelector('.level')) list.querySelector('.level').click();
+}
+
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => showCampaign(b.dataset.camp, false));
 
 $('btn-paste').onclick = () => {
     const text = $('paste').value.trim();
@@ -319,8 +369,13 @@ function validate(text) {
     $('report').innerHTML = `<ul>${out.join('')}</ul>`;
 }
 
-// Apre subito il primo livello dell'elenco
-if (list.querySelector('.level')) list.querySelector('.level').click();
+// Legge le campagne da config.js, mostra l'ultima scheda usata e apre il suo primo livello
+import('./config.js').then(({ CAMPAIGNS }) => {
+    buildCampaigns(CAMPAIGNS);
+    let camp = 'vitto';
+    try { camp = localStorage.getItem('icarous_lab_camp') || camp; } catch (e) {}
+    showCampaign(campaigns[camp] ? camp : 'vitto', true);
+}).catch(e => { list.innerHTML = `<p class="small">Non riesco a leggere config.js: ${e.message}</p>`; });
 </script>
 </body>
 </html>
